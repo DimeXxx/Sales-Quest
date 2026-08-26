@@ -32,8 +32,8 @@ export function RadialGauge({ pct, size = 64, stroke = 6, color = "#22D3EE", ico
           style={{ transition: "stroke-dasharray 0.6s ease", filter: `drop-shadow(0 0 5px ${color}aa)` }}
         />
       </svg>
-      {Icon && <Icon className="absolute h-1/3 w-1/3 text-zinc-400" strokeWidth={1.75} />}
-      {centerLabel && <span className="absolute text-xs font-bold text-zinc-100">{centerLabel}</span>}
+      {Icon && <Icon className="absolute h-1/3 w-1/3 text-slate-400" strokeWidth={1.75} />}
+      {centerLabel && <span className="absolute text-xs font-bold text-slate-100">{centerLabel}</span>}
     </div>
   );
 }

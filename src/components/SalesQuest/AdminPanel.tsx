@@ -29,6 +29,10 @@ interface AdminPanelProps {
   onBulkImport: (rows: ParsedProductRow[]) => void;
   onRemoveFocusProduct: (id: string) => void;
   onToggleBossFight: (id: string) => void;
+  /** Show only the products/inventory section (used by the split Admin nav). */
+  hideBossFights?: boolean;
+  /** Show only the Boss Fights section (used by the split Admin nav). */
+  onlyBossFights?: boolean;
 }
 
 export function AdminPanel({
@@ -39,6 +43,8 @@ export function AdminPanel({
   onBulkImport,
   onRemoveFocusProduct,
   onToggleBossFight,
+  hideBossFights = false,
+  onlyBossFights = false,
 }: AdminPanelProps) {
   const { t } = useLanguage();
   const rows = focusProducts
@@ -47,51 +53,50 @@ export function AdminPanel({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-black tracking-tight text-zinc-50 sm:text-3xl">{t("adminTitle")}</h1>
-        <p className="mt-1 text-sm text-zinc-500">{t("adminSubtitle")}</p>
-      </div>
+      {!onlyBossFights && (
+        <div className="grid gap-5 lg:grid-cols-5">
+          <div className="lg:col-span-3">
+            <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-400">{t("inventory")}</h2>
+            <InventoryTable rows={rows} onRemove={onRemoveFocusProduct} />
+          </div>
+          <div className="space-y-5 lg:col-span-2">
+            <ExcelImportPanel onImport={onBulkImport} />
+            <FocusProductForm onCreate={onCreateFocusProduct} />
+          </div>
+        </div>
+      )}
 
-      <div className="grid gap-5 lg:grid-cols-5">
-        <div className="lg:col-span-3">
-          <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-zinc-400">{t("inventory")}</h2>
-          <InventoryTable rows={rows} onRemove={onRemoveFocusProduct} />
+      {!hideBossFights && (
+        <div>
+          <h2 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-400">
+            <Skull className="h-4 w-4 text-rose-400" /> {t("bossFights")}
+          </h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {bossFights.map((bf) => (
+              <Card key={bf.id} interactive className="p-4">
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="text-sm font-bold text-slate-100">{bf.title}</p>
+                  <span className={`text-[10px] font-bold uppercase ${bf.active ? "text-emerald-400" : "text-slate-500"}`}>
+                    {bf.active ? t("active") : t("inactive")}
+                  </span>
+                </div>
+                <p className="mb-3 text-xs text-slate-500">{bf.description}</p>
+                <div className="mb-1 flex justify-between text-xs text-slate-400">
+                  <span>{t("target")}: {bf.targetQuantity} units</span>
+                  <span>{bf.currentQuantity}/{bf.targetQuantity}</span>
+                </div>
+                <Progress value={(bf.currentQuantity / bf.targetQuantity) * 100} colorClassName="bg-gradient-to-r from-rose-500 to-rose-400" glowColor="#F43F5E" />
+                <div className="mt-3 flex items-center justify-between">
+                  <span className="text-xs text-slate-400">{t("bossFightReward")}: {bf.reward}</span>
+                  <Button size="sm" variant={bf.active ? "secondary" : "primary"} onClick={() => onToggleBossFight(bf.id)}>
+                    <Sparkles className="h-3.5 w-3.5" /> {bf.active ? t("deactivate") : t("activate")}
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
         </div>
-        <div className="space-y-5 lg:col-span-2">
-          <ExcelImportPanel onImport={onBulkImport} />
-          <FocusProductForm onCreate={onCreateFocusProduct} />
-        </div>
-      </div>
-
-      <div>
-        <h2 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-zinc-400">
-          <Skull className="h-4 w-4 text-rose-400" /> {t("bossFights")}
-        </h2>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {bossFights.map((bf) => (
-            <Card key={bf.id} className="p-4">
-              <div className="mb-2 flex items-center justify-between">
-                <p className="text-sm font-bold text-zinc-100">{bf.title}</p>
-                <span className={`text-[10px] font-bold uppercase ${bf.active ? "text-emerald-400" : "text-zinc-500"}`}>
-                  {bf.active ? t("active") : t("inactive")}
-                </span>
-              </div>
-              <p className="mb-3 text-xs text-zinc-500">{bf.description}</p>
-              <div className="mb-1 flex justify-between text-xs text-zinc-400">
-                <span>{t("target")}: {bf.targetQuantity} units</span>
-                <span>{bf.currentQuantity}/{bf.targetQuantity}</span>
-              </div>
-              <Progress value={(bf.currentQuantity / bf.targetQuantity) * 100} colorClassName="bg-gradient-to-r from-rose-500 to-rose-400" />
-              <div className="mt-3 flex items-center justify-between">
-                <span className="text-xs text-zinc-400">{t("bossFightReward")}: {bf.reward}</span>
-                <Button size="sm" variant={bf.active ? "secondary" : "primary"} onClick={() => onToggleBossFight(bf.id)}>
-                  <Sparkles className="h-3.5 w-3.5" /> {bf.active ? t("deactivate") : t("activate")}
-                </Button>
-              </div>
-            </Card>
-          ))}
-        </div>
-      </div>
+      )}
     </div>
   );
 }

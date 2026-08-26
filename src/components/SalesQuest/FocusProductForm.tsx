@@ -67,11 +67,11 @@ export function FocusProductForm({ onCreate }: FocusProductFormProps) {
     setForm(EMPTY);
   };
 
-  const field = "rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm outline-none placeholder:text-zinc-600 focus:border-violet-500";
+  const field = "rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm outline-none placeholder:text-slate-600 focus:border-violet-500";
 
   return (
     <Card className="p-5">
-      <h2 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-zinc-400">
+      <h2 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-400">
         <Plus className="h-4 w-4 text-violet-400" /> {t("addFocusProduct")}
       </h2>
 
@@ -89,7 +89,7 @@ export function FocusProductForm({ onCreate }: FocusProductFormProps) {
           <option value="high">{t("filterHigh")}</option>
           <option value="normal">{t("filterNormal")}</option>
         </select>
-        <label className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-zinc-400">
+        <label className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-slate-400">
           <input type="checkbox" checked={autoReward} onChange={(e) => setAutoReward(e.target.checked)} />
           {t("autoReward")}
         </label>
@@ -103,7 +103,7 @@ export function FocusProductForm({ onCreate }: FocusProductFormProps) {
       )}
 
       {autoReward && (
-        <p className="mt-3 text-xs text-zinc-500">
+        <p className="mt-3 text-xs text-slate-500">
           {t("rewardEngineSuggests")}: <span className="font-bold text-violet-300">+{xpReward} XP</span> ·{" "}
           <span className="font-bold text-amber-300">+{coinReward} Coins</span>
         </p>

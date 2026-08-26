@@ -20,7 +20,7 @@ export function InventoryTable({ rows, onRemove }: InventoryTableProps) {
       <div className="overflow-x-auto">
         <table className="w-full min-w-[820px] text-left text-sm">
           <thead>
-            <tr className="border-b border-white/5 text-[11px] uppercase tracking-wide text-zinc-500">
+            <tr className="border-b border-white/5 text-[11px] uppercase tracking-wide text-slate-500">
               <th className="px-4 py-3 font-semibold">Product</th>
               <th className="px-4 py-3 font-semibold">SKU</th>
               <th className="px-4 py-3 font-semibold">Price</th>
@@ -39,16 +39,16 @@ export function InventoryTable({ rows, onRemove }: InventoryTableProps) {
               <tr key={focusProduct.id} className="border-b border-white/5 last:border-0">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2.5">
-                    <ProductImage src={product.imageUrl} alt="" className="h-9 w-9 shrink-0 rounded-lg object-cover" />
-                    <span className="font-semibold text-zinc-200">{product.name}</span>
+                    <ProductImage name={product.name} category={product.category} src={product.imageUrl} className="h-9 w-9 shrink-0 rounded-lg object-cover" />
+                    <span className="font-semibold text-slate-200">{product.name}</span>
                   </div>
                 </td>
-                <td className="px-4 py-3 font-mono text-zinc-500">{product.sku}</td>
-                <td className="px-4 py-3 font-mono text-zinc-300">{product.price ? `$${product.price}` : "—"}</td>
-                <td className="px-4 py-3 font-mono text-zinc-300">{product.stock}</td>
+                <td className="px-4 py-3 font-mono text-slate-500">{product.sku}</td>
+                <td className="px-4 py-3 font-mono text-slate-300">{product.price ? `$${product.price}` : "—"}</td>
+                <td className="px-4 py-3 font-mono text-slate-300">{product.stock}</td>
                 <td className="px-4 py-3"><PriorityBadge priority={focusProduct.priority} /></td>
-                <td className="px-4 py-3 text-zinc-400">{product.stockAgeDays} days</td>
-                <td className="px-4 py-3 text-zinc-400">{product.marginPercent}%</td>
+                <td className="px-4 py-3 text-slate-400">{product.stockAgeDays} days</td>
+                <td className="px-4 py-3 text-slate-400">{product.marginPercent}%</td>
                 <td className="px-4 py-3 font-semibold text-violet-300">{focusProduct.xpReward} XP</td>
                 <td className="px-4 py-3 font-semibold text-amber-300">{focusProduct.coinReward} Coins</td>
                 <td className="px-4 py-3">
@@ -68,7 +68,7 @@ export function InventoryTable({ rows, onRemove }: InventoryTableProps) {
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={11} className="px-4 py-8 text-center text-sm text-zinc-500">
+                <td colSpan={11} className="px-4 py-8 text-center text-sm text-slate-500">
                   Нет активных фокусных товаров.
                 </td>
               </tr>

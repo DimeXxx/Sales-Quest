@@ -1,4 +1,5 @@
-import { AlertTriangle, Coins, Package, TrendingUp, Zap } from "lucide-react";
+import { useState } from "react";
+import { AlertTriangle, Coins, Minus, Package, Plus, TrendingUp, Zap } from "lucide-react";
 import type { QuestCardData } from "../../types/sales";
 import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
@@ -11,7 +12,7 @@ import { useLanguage } from "../../i18n/LanguageContext";
 interface QuestCardProps {
   quest: QuestCardData;
   pulsing: boolean;
-  onSell: () => void;
+  onSell: (quantity: number) => void;
 }
 
 const GLOW = { critical: "rose", high: "amber", normal: "emerald" } as const;
@@ -32,6 +33,9 @@ export function QuestCard({ quest, pulsing, onSell }: QuestCardProps) {
   const cleared = Math.max(0, product.initialStock - product.stock);
   const clearedPct = product.initialStock > 0 ? (cleared / product.initialStock) * 100 : 0;
 
+  const [qty, setQty] = useState(1);
+  const clampQty = (n: number) => Math.max(1, Math.min(product.stock || 1, n));
+
   return (
     <Card
       glow={GLOW[priority]}
@@ -40,66 +44,102 @@ export function QuestCard({ quest, pulsing, onSell }: QuestCardProps) {
       }`}
     >
       {/* image / placeholder banner */}
-      <div className="relative h-36 w-full overflow-hidden">
+      <div className="relative h-20 w-full overflow-hidden">
         <ProductImage
+          name={product.name}
+          category={product.category}
           src={product.imageUrl}
-          alt={product.name}
           accentFrom={cat.glowFrom}
           accentTo={cat.glowTo}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/10 to-transparent" />
-        <div className="absolute left-3 top-3">
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
+        <div className="absolute left-2 top-2">
           <PriorityBadge priority={priority} />
         </div>
         {isCritical && (
-          <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-rose-500/90 px-2 py-0.5 text-[10px] font-bold text-white shadow-lg shadow-rose-950/50">
-            <AlertTriangle className="h-3 w-3" /> {t("critical")}
+          <span className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-rose-500/90 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-lg shadow-rose-950/50">
+            <AlertTriangle className="h-2.5 w-2.5" /> {t("critical")}
           </span>
         )}
         {isWarning && (
-          <span className="absolute right-3 top-3 rounded-full bg-amber-500/90 px-2 py-0.5 text-[10px] font-bold text-slate-950 shadow-lg shadow-amber-950/50">
+          <span className="absolute right-2 top-2 rounded-full bg-amber-500/90 px-1.5 py-0.5 text-[9px] font-bold text-slate-950 shadow-lg shadow-amber-950/50">
             {t("lowStock")}
           </span>
         )}
-        <div className="absolute bottom-2.5 left-3 right-3">
-          <p className="truncate text-sm font-bold leading-tight text-white drop-shadow">{product.name}</p>
-          <p className={`text-[11px] font-semibold ${cat.text}`}>{product.category} · {product.sku}</p>
+        <div className="absolute bottom-1.5 left-2 right-2">
+          <p className="truncate text-xs font-bold leading-tight text-white drop-shadow">{product.name}</p>
+          <p className={`truncate text-[9px] font-semibold ${cat.text}`}>{product.category} · {product.sku}</p>
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col p-4">
-        <div className="mb-3 flex items-center gap-3.5">
-          <RadialGauge pct={clearedPct} color={GAUGE_COLOR[priority]} icon={Package} size={56} stroke={5} />
+      <div className="flex flex-1 flex-col p-3">
+        <div className="mb-2.5 flex items-center gap-2.5">
+          <RadialGauge pct={clearedPct} color={GAUGE_COLOR[priority]} icon={Package} size={40} stroke={4} />
           <div className="min-w-0 flex-1">
-            <p className="text-[13px] font-semibold text-slate-200">
-              <span className="font-mono">{cleared}</span> / <span className="font-mono">{product.initialStock}</span>{" "}
+            <p className="text-[11px] font-semibold text-slate-200">
+              <span className="font-mono">{cleared}</span>/<span className="font-mono">{product.initialStock}</span>{" "}
               <span className="font-normal text-slate-500">{t("unitsCleared")}</span>
             </p>
-            <p className="mt-0.5 text-xs text-slate-500">
+            <p className="mt-0.5 text-[10px] text-slate-500">
               📦 <span className="font-semibold text-slate-300">{product.stock}</span> {t("unitsInStock")}
-              {product.price > 0 && <span className="ml-2 font-mono text-slate-400">${product.price}</span>}
+              {product.price > 0 && <span className="ml-1.5 font-mono text-slate-400">${product.price}</span>}
             </p>
           </div>
         </div>
 
-        <p className="mb-3 line-clamp-2 text-xs text-slate-500">{product.description}</p>
-
-        <div className="mb-4 flex items-center gap-4 text-sm">
-          <span className="flex items-center gap-1.5 font-bold text-violet-300">
-            <Zap className="h-4 w-4" /> +{xpReward} XP
+        <div className="mb-2.5 flex items-center gap-3 text-xs">
+          <span className="flex items-center gap-1 font-bold text-violet-300">
+            <Zap className="h-3.5 w-3.5" /> +{xpReward * qty}
           </span>
-          <span className="flex items-center gap-1.5 font-bold text-amber-300">
-            <Coins className="h-4 w-4" /> +{coinReward} Coins
+          <span className="flex items-center gap-1 font-bold text-amber-300">
+            <Coins className="h-3.5 w-3.5" /> +{coinReward * qty}
           </span>
         </div>
 
-        <Button onClick={onSell} disabled={soldOut} variant="primary" className="mt-auto w-full">
+        {!soldOut && (
+          <div className="mb-2.5 flex items-center justify-center gap-1.5 rounded-lg border border-slate-800/80 bg-slate-950/40 p-1">
+            <button
+              type="button"
+              onClick={() => setQty((q) => clampQty(q - 1))}
+              className="flex h-6 w-6 items-center justify-center rounded-md text-slate-400 hover:bg-white/5 hover:text-slate-100"
+            >
+              <Minus className="h-3 w-3" />
+            </button>
+            <input
+              type="number"
+              min={1}
+              max={product.stock}
+              value={qty}
+              onChange={(e) => setQty(clampQty(Number(e.target.value) || 1))}
+              className="w-12 bg-transparent text-center text-sm font-bold text-slate-100 outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            />
+            <button
+              type="button"
+              onClick={() => setQty((q) => clampQty(q + 1))}
+              className="flex h-6 w-6 items-center justify-center rounded-md text-slate-400 hover:bg-white/5 hover:text-slate-100"
+            >
+              <Plus className="h-3 w-3" />
+            </button>
+            <span className="ml-1 text-[10px] text-slate-600">/ {product.stock}</span>
+          </div>
+        )}
+
+        <Button
+          onClick={() => {
+            onSell(qty);
+            setQty(1);
+          }}
+          disabled={soldOut}
+          variant={soldOut ? "secondary" : "primary"}
+          size="sm"
+          className={`mt-auto w-full ${soldOut ? "!bg-slate-800/70 !text-slate-500 !shadow-none border-slate-700/60" : ""}`}
+        >
           {soldOut ? (
             t("soldOut")
           ) : (
             <>
-              <TrendingUp className="h-4 w-4" /> {t("registerSale")}
+              <TrendingUp className="h-3.5 w-3.5" /> {t("registerSale")}
             </>
           )}
         </Button>

@@ -160,7 +160,7 @@ export function useGameState({ pushToast, currentUserId }: UseGameStateArgs) {
         initialStock: input.stock,
         stockAgeDays: input.stockAgeDays,
         marginPercent: input.marginPercent,
-        imageUrl: input.imageUrl || `https://picsum.photos/seed/${encodeURIComponent(input.sku)}/600/450`,
+        imageUrl: input.imageUrl,
       };
       const newFocus: FocusProduct = {
         id: focusId,
@@ -214,7 +214,6 @@ export function useGameState({ pushToast, currentUserId }: UseGameStateArgs) {
           initialStock: row.stock,
           stockAgeDays: row.stockAgeDays,
           marginPercent: row.marginPercent,
-          imageUrl: `https://picsum.photos/seed/${encodeURIComponent(row.sku)}/600/450`,
         });
         newFocus.push({
           id: focusId,
@@ -258,6 +257,22 @@ export function useGameState({ pushToast, currentUserId }: UseGameStateArgs) {
     setBossFights((prev) => prev.map((bf) => (bf.id === id ? { ...bf, active: !bf.active } : bf)));
   }, []);
 
+  // ---- admin: directly grant/adjust a manager's coins or XP -------------
+  const adjustManager = useCallback((managerId: string, delta: { coins?: number; xp?: number }) => {
+    setManagers((prev) =>
+      prev.map((m) => {
+        if (m.id !== managerId) return m;
+        const newXp = Math.max(0, m.xp + (delta.xp ?? 0));
+        return {
+          ...m,
+          coins: Math.max(0, m.coins + (delta.coins ?? 0)),
+          xp: newXp,
+          level: levelFromXp(newXp).level,
+        };
+      })
+    );
+  }, []);
+
   const leaderboard = useMemo(() => [...managers].sort((a, b) => b.xp - a.xp), [managers]);
 
   return {
@@ -276,6 +291,7 @@ export function useGameState({ pushToast, currentUserId }: UseGameStateArgs) {
     addFocusProduct,
     bulkImportProducts,
     addManager,
+    adjustManager,
     removeFocusProduct,
     toggleBossFight,
   };

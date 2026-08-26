@@ -17,8 +17,8 @@ export function ArenaTab({ managers, rewards, achievements, coins, onRedeem }: A
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-black tracking-tight text-zinc-50 sm:text-3xl">{t("arenaTitle")}</h1>
-        <p className="mt-1 text-sm text-zinc-500">{t("arenaSubtitle")}</p>
+        <h1 className="text-2xl font-black tracking-tight text-slate-50 sm:text-3xl">{t("arenaTitle")}</h1>
+        <p className="mt-1 text-sm text-slate-500">{t("arenaSubtitle")}</p>
       </div>
 
       <Leaderboard managers={managers} />

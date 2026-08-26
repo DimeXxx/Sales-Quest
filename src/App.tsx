@@ -12,32 +12,35 @@ import { LoginScreen } from "./components/auth/LoginScreen";
 import { SideNav, BottomNav, type TabId } from "./components/SalesQuest/NavBar";
 import { QuestsTab } from "./components/SalesQuest/QuestsTab";
 import { ArenaTab } from "./components/SalesQuest/ArenaTab";
-import { AdminPanel } from "./components/SalesQuest/AdminPanel";
+import { AdminApp } from "./components/SalesQuest/AdminApp";
 
 export default function App() {
   const { account, isAuthenticated, logout } = useAuth();
-  const { t } = useLanguage();
 
   if (!isAuthenticated || !account) {
     return <LoginScreen />;
   }
 
-  return <AuthenticatedApp accountManagerId={account.managerId} accountName={account.name} accountRole={account.role} logout={logout} t={t} />;
+  // Role-based routing: ROP/admin accounts never see the manager frontend —
+  // they land straight in the separate AdminApp control room. Managers never
+  // see the admin surface at all (no nav item, no route). This is a client-
+  // side gate for the internal pilot; a production rollout should also
+  // enforce this server-side once a real backend exists (see README).
+  if (account.role === "rop" || account.role === "admin") {
+    return <RoutedAdminApp accountManagerId={account.managerId} accountName={account.name} accountRole={account.role} logout={logout} />;
+  }
+
+  return <ManagerApp accountManagerId={account.managerId} accountName={account.name} accountRole={account.role} logout={logout} />;
 }
 
-interface AuthenticatedAppProps {
+interface AppProps {
   accountManagerId: string;
   accountName: string;
   accountRole: "manager" | "rop" | "admin";
   logout: () => void;
-  t: (key: Parameters<ReturnType<typeof useLanguage>["t"]>[0]) => string;
 }
 
-function AuthenticatedApp({ accountManagerId, accountName, accountRole, logout, t }: AuthenticatedAppProps) {
-  const [tab, setTab] = useState<TabId>(accountRole === "rop" ? "admin" : "quests");
-  const { toasts, pushToast } = useToasts();
-  const game = useGameState({ pushToast, currentUserId: accountManagerId });
-
+function useEnsureManagerProfile(accountManagerId: string, accountName: string, accountRole: AppProps["accountRole"], game: ReturnType<typeof useGameState>) {
   // If this is a freshly registered account, its manager profile won't exist
   // in the game state's seed data yet — create it once, on first render.
   useEffect(() => {
@@ -47,6 +50,15 @@ function AuthenticatedApp({ accountManagerId, accountName, accountRole, logout, 
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accountManagerId]);
+}
+
+/** Manager-facing frontend: Quests + Arena only. */
+function ManagerApp({ accountManagerId, accountName, accountRole, logout }: AppProps) {
+  const [tab, setTab] = useState<TabId>("quests");
+  const { toasts, pushToast } = useToasts();
+  const { t } = useLanguage();
+  const game = useGameState({ pushToast, currentUserId: accountManagerId });
+  useEnsureManagerProfile(accountManagerId, accountName, accountRole, game);
 
   const rank = game.leaderboard.findIndex((m) => m.id === game.currentManager.id) + 1;
 
@@ -91,23 +103,34 @@ function AuthenticatedApp({ accountManagerId, accountName, accountRole, logout, 
                 onRedeem={game.redeemReward}
               />
             )}
-
-            {tab === "admin" && (
-              <AdminPanel
-                products={game.products}
-                focusProducts={game.focusProducts}
-                bossFights={game.bossFights}
-                onCreateFocusProduct={game.addFocusProduct}
-                onBulkImport={game.bulkImportProducts}
-                onRemoveFocusProduct={game.removeFocusProduct}
-                onToggleBossFight={game.toggleBossFight}
-              />
-            )}
           </div>
         </main>
       </div>
 
       <BottomNav active={tab} onChange={setTab} />
     </div>
+  );
+}
+
+/** Separate admin/backend control room — entirely different shell, no manager tabs at all. */
+function RoutedAdminApp({ accountManagerId, accountName, accountRole, logout }: AppProps) {
+  const { pushToast } = useToasts();
+  const game = useGameState({ pushToast, currentUserId: accountManagerId });
+  useEnsureManagerProfile(accountManagerId, accountName, accountRole, game);
+
+  return (
+    <AdminApp
+      managerName={accountName}
+      products={game.products}
+      focusProducts={game.focusProducts}
+      bossFights={game.bossFights}
+      managers={game.managers}
+      onCreateFocusProduct={game.addFocusProduct}
+      onBulkImport={game.bulkImportProducts}
+      onRemoveFocusProduct={game.removeFocusProduct}
+      onToggleBossFight={game.toggleBossFight}
+      onAdjustManager={game.adjustManager}
+      logout={logout}
+    />
   );
 }

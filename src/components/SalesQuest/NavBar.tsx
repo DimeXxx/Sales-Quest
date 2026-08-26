@@ -1,7 +1,9 @@
-import { Gamepad2, Settings, Trophy, Zap } from "lucide-react";
+import { Gamepad2, Trophy, Zap } from "lucide-react";
 import { useLanguage } from "../../i18n/LanguageContext";
 
-export type TabId = "quests" | "arena" | "admin";
+// Manager-facing app has exactly two areas — the Admin/ROP surface lives in
+// a completely separate shell (see AdminApp.tsx), not as a tab here.
+export type TabId = "quests" | "arena";
 
 interface NavBarProps {
   active: TabId;
@@ -13,7 +15,6 @@ export function SideNav({ active, onChange }: NavBarProps) {
   const TABS: { id: TabId; label: string; icon: typeof Gamepad2 }[] = [
     { id: "quests", label: t("navQuests"), icon: Gamepad2 },
     { id: "arena", label: t("navArena"), icon: Trophy },
-    { id: "admin", label: t("navAdmin"), icon: Settings },
   ];
 
   return (
@@ -61,7 +62,6 @@ export function BottomNav({ active, onChange }: NavBarProps) {
   const TABS: { id: TabId; label: string; icon: typeof Gamepad2 }[] = [
     { id: "quests", label: t("navQuests"), icon: Gamepad2 },
     { id: "arena", label: t("navArena"), icon: Trophy },
-    { id: "admin", label: t("navAdmin"), icon: Settings },
   ];
 
   return (
