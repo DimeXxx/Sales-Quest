@@ -2,6 +2,7 @@ import { Trash2 } from "lucide-react";
 import type { FocusProduct, Product } from "../../types/sales";
 import { Card } from "../ui/Card";
 import { PriorityBadge } from "../ui/Badge";
+import { ProductImage } from "../ui/ProductImage";
 
 interface InventoryRow {
   focusProduct: FocusProduct;
@@ -38,7 +39,7 @@ export function InventoryTable({ rows, onRemove }: InventoryTableProps) {
               <tr key={focusProduct.id} className="border-b border-white/5 last:border-0">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2.5">
-                    <img src={product.imageUrl} alt="" className="h-9 w-9 shrink-0 rounded-lg object-cover" />
+                    <ProductImage src={product.imageUrl} alt="" className="h-9 w-9 shrink-0 rounded-lg object-cover" />
                     <span className="font-semibold text-zinc-200">{product.name}</span>
                   </div>
                 </td>

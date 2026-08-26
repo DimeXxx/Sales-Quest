@@ -51,7 +51,7 @@ function AuthenticatedApp({ accountManagerId, accountName, accountRole, logout, 
   const rank = game.leaderboard.findIndex((m) => m.id === game.currentManager.id) + 1;
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-zinc-950 text-zinc-100">
+    <div className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-950 text-slate-100">
       <BgDecor />
       <ToastStack toasts={toasts} />
 
@@ -64,7 +64,7 @@ function AuthenticatedApp({ accountManagerId, accountName, accountRole, logout, 
               <LanguageSwitcher />
               <button
                 onClick={logout}
-                className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-semibold text-zinc-400 hover:border-rose-500/30 hover:text-rose-300"
+                className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-semibold text-slate-400 hover:border-rose-500/30 hover:text-rose-300"
               >
                 <LogOut className="h-3.5 w-3.5" /> {t("logout")}
               </button>

@@ -25,8 +25,8 @@ export function QuestFilters({ value, onChange }: QuestFiltersProps) {
           onClick={() => onChange(f.id)}
           className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-all ${
             value === f.id
-              ? "border-zinc-100 bg-zinc-100 text-zinc-950"
-              : "border-white/10 bg-white/5 text-zinc-400 hover:border-white/20 hover:text-zinc-200"
+              ? "border-slate-100 bg-slate-100 text-slate-950"
+              : "border-white/10 bg-white/5 text-slate-400 hover:border-white/20 hover:text-slate-200"
           }`}
         >
           {f.label}

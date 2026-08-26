@@ -8,10 +8,10 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const VARIANTS: Record<NonNullable<ButtonProps["variant"]>, string> = {
   primary:
-    "bg-gradient-to-r from-emerald-500 to-emerald-400 text-zinc-950 hover:brightness-110 shadow-lg shadow-emerald-500/20",
-  secondary: "bg-white/5 text-zinc-200 hover:bg-white/10 border border-white/10",
-  danger: "bg-gradient-to-r from-rose-600 to-rose-500 text-white hover:brightness-110 shadow-lg shadow-rose-500/20",
-  ghost: "bg-transparent text-zinc-400 hover:text-zinc-100 hover:bg-white/5",
+    "bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-400/30",
+  secondary: "bg-slate-800/60 text-slate-200 hover:bg-slate-800 border border-slate-700/80 hover:border-cyan-500/30",
+  danger: "bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-500/25 hover:shadow-rose-400/35",
+  ghost: "bg-transparent text-slate-400 hover:text-slate-100 hover:bg-white/5",
 };
 
 const SIZES: Record<NonNullable<ButtonProps["size"]>, string> = {
@@ -31,7 +31,7 @@ export function Button({
   return (
     <button
       disabled={disabled}
-      className={`flex items-center justify-center gap-2 rounded-xl font-bold transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100 ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
+      className={`flex items-center justify-center gap-2 rounded-xl font-bold transition-all duration-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none disabled:active:scale-100 ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
       {...rest}
     >
       {children}

@@ -17,13 +17,13 @@ export function SideNav({ active, onChange }: NavBarProps) {
   ];
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-white/[0.06] bg-zinc-950/90 px-4 py-6 backdrop-blur-sm lg:flex">
+    <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-white/[0.06] bg-slate-950/90 px-4 py-6 backdrop-blur-sm lg:flex">
       <div className="mb-9 flex items-center gap-2.5 px-1">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-300 to-violet-400 shadow-lg shadow-cyan-400/30">
-          <Zap className="h-5 w-5 text-zinc-950" strokeWidth={2.5} />
+          <Zap className="h-5 w-5 text-slate-950" strokeWidth={2.5} />
         </div>
         <div>
-          <p className="text-[15px] font-black leading-none tracking-tight text-zinc-50">{t("appName")}</p>
+          <p className="text-[15px] font-black leading-none tracking-tight text-slate-50">{t("appName")}</p>
           <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-300/70">{t("appTagline")}</p>
         </div>
       </div>
@@ -36,7 +36,7 @@ export function SideNav({ active, onChange }: NavBarProps) {
               key={tab.id}
               onClick={() => onChange(tab.id)}
               className={`relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all ${
-                isActive ? "bg-cyan-400/[0.08] text-cyan-300" : "text-zinc-500 hover:bg-white/[0.03] hover:text-zinc-200"
+                isActive ? "bg-cyan-400/[0.08] text-cyan-300" : "text-slate-500 hover:bg-white/[0.03] hover:text-slate-200"
               }`}
             >
               {isActive && (
@@ -49,8 +49,8 @@ export function SideNav({ active, onChange }: NavBarProps) {
       </nav>
 
       <div className="mt-auto rounded-xl border border-white/[0.06] bg-gradient-to-br from-violet-500/[0.08] to-cyan-500/[0.08] p-3.5">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">{t("commandCenter")}</p>
-        <p className="mt-1 text-xs text-zinc-400">{t("commandCenterLoop")}</p>
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{t("commandCenter")}</p>
+        <p className="mt-1 text-xs text-slate-400">{t("commandCenterLoop")}</p>
       </div>
     </aside>
   );
@@ -65,13 +65,13 @@ export function BottomNav({ active, onChange }: NavBarProps) {
   ];
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-white/10 bg-zinc-950/95 backdrop-blur-md lg:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-white/10 bg-slate-950/95 backdrop-blur-md lg:hidden">
       {TABS.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onChange(tab.id)}
           className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-semibold transition-colors ${
-            active === tab.id ? "text-cyan-300" : "text-zinc-500"
+            active === tab.id ? "text-cyan-300" : "text-slate-500"
           }`}
         >
           <tab.icon className="h-5 w-5" /> {tab.label}

@@ -43,10 +43,10 @@ export function LoginScreen() {
   };
 
   const field =
-    "w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-cyan-400";
+    "w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-sm text-slate-100 outline-none placeholder:text-slate-600 focus:border-cyan-400";
 
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-zinc-950 px-4 text-zinc-100">
+    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-950 px-4 text-slate-100">
       <BgDecor />
       <div className="absolute right-5 top-5 z-10">
         <LanguageSwitcher />
@@ -55,18 +55,18 @@ export function LoginScreen() {
       <Card glow="cyan" className="relative z-10 w-full max-w-sm p-6">
         <div className="mb-6 flex items-center gap-2.5">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-300 to-violet-400 shadow-lg shadow-cyan-400/30">
-            <Zap className="h-5 w-5 text-zinc-950" strokeWidth={2.5} />
+            <Zap className="h-5 w-5 text-slate-950" strokeWidth={2.5} />
           </div>
           <div>
-            <p className="text-sm font-black leading-none text-zinc-50">{t("appName")}</p>
+            <p className="text-sm font-black leading-none text-slate-50">{t("appName")}</p>
             <p className="mt-0.5 text-[10px] font-medium uppercase tracking-widest text-cyan-300/70">{t("appTagline")}</p>
           </div>
         </div>
 
-        <h1 className="mb-1 text-lg font-bold text-zinc-50">
+        <h1 className="mb-1 text-lg font-bold text-slate-50">
           {mode === "login" ? t("loginTitle") : t("registerTitle")}
         </h1>
-        <p className="mb-5 text-xs text-zinc-500">{mode === "login" ? t("loginSubtitle") : t("registerSubtitle")}</p>
+        <p className="mb-5 text-xs text-slate-500">{mode === "login" ? t("loginSubtitle") : t("registerSubtitle")}</p>
 
         <form onSubmit={submit} className="space-y-3">
           {mode === "register" && (
@@ -96,7 +96,7 @@ export function LoginScreen() {
                   className={`flex-1 rounded-xl border px-3 py-2 text-xs font-semibold transition-all ${
                     role === r
                       ? "border-cyan-400/50 bg-cyan-400/10 text-cyan-300"
-                      : "border-white/10 bg-white/[0.02] text-zinc-500"
+                      : "border-white/10 bg-white/[0.02] text-slate-500"
                   }`}
                 >
                   {r === "manager" ? t("roleManager") : t("roleRop")}
@@ -125,14 +125,14 @@ export function LoginScreen() {
             setMode(mode === "login" ? "register" : "login");
             setError("");
           }}
-          className="mt-4 w-full text-center text-xs font-semibold text-zinc-500 hover:text-cyan-300"
+          className="mt-4 w-full text-center text-xs font-semibold text-slate-500 hover:text-cyan-300"
         >
           {mode === "login" ? t("switchToRegister") : t("switchToLogin")}
         </button>
 
         {mode === "login" && (
           <div className="mt-5 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-600">
+            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
               {t("demoAccountsHint")}
             </p>
             <div className="space-y-0.5">
@@ -144,7 +144,7 @@ export function LoginScreen() {
                     setEmail(a.email);
                     setPassword("demo123");
                   }}
-                  className="block w-full truncate rounded-md px-1.5 py-0.5 text-left text-[11px] text-zinc-500 hover:bg-white/[0.04] hover:text-cyan-300"
+                  className="block w-full truncate rounded-md px-1.5 py-0.5 text-left text-[11px] text-slate-500 hover:bg-white/[0.04] hover:text-cyan-300"
                 >
                   {a.name} — {a.email}
                 </button>

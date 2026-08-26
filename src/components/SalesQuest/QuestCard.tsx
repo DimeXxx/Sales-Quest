@@ -4,6 +4,7 @@ import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
 import { PriorityBadge } from "../ui/Badge";
 import { RadialGauge } from "../ui/RadialGauge";
+import { ProductImage } from "../ui/ProductImage";
 import { getCategoryStyle } from "../../lib/categoryColors";
 import { useLanguage } from "../../i18n/LanguageContext";
 
@@ -13,8 +14,13 @@ interface QuestCardProps {
   onSell: () => void;
 }
 
-const GLOW = { critical: "rose", high: "amber", normal: "cyan" } as const;
-const GAUGE_COLOR = { critical: "#FB7185", high: "#FBBF24", normal: "#22D3EE" } as const;
+const GLOW = { critical: "rose", high: "amber", normal: "emerald" } as const;
+const GAUGE_COLOR = { critical: "#FB7185", high: "#FBBF24", normal: "#34D399" } as const;
+const BORDER = {
+  critical: "border-rose-500/50 hover:border-rose-400/70",
+  high: "border-amber-500/50 hover:border-amber-400/70",
+  normal: "border-emerald-500/50 hover:border-emerald-400/70",
+} as const;
 
 export function QuestCard({ quest, pulsing, onSell }: QuestCardProps) {
   const { t } = useLanguage();
@@ -29,30 +35,30 @@ export function QuestCard({ quest, pulsing, onSell }: QuestCardProps) {
   return (
     <Card
       glow={GLOW[priority]}
-      className={`group flex flex-col overflow-hidden border p-0 transition-all hover:-translate-y-0.5 ${
-        priority === "critical" ? "border-rose-500/25" : priority === "high" ? "border-amber-500/25" : "border-cyan-500/25"
-      } ${pulsing ? "scale-[1.02] ring-2 ring-cyan-400/50" : ""}`}
+      className={`group flex flex-col overflow-hidden border p-0 transition-all duration-300 hover:-translate-y-1 ${BORDER[priority]} ${
+        pulsing ? "scale-[1.02] ring-2 ring-emerald-400/60" : ""
+      }`}
     >
-      {/* image banner */}
+      {/* image / placeholder banner */}
       <div className="relative h-36 w-full overflow-hidden">
-        <img
+        <ProductImage
           src={product.imageUrl}
           alt={product.name}
-          loading="lazy"
+          accentFrom={cat.glowFrom}
+          accentTo={cat.glowTo}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
-        <div className={`absolute inset-0 bg-gradient-to-t ${cat.from} ${cat.to} opacity-30 mix-blend-color`} />
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/10 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/10 to-transparent" />
         <div className="absolute left-3 top-3">
           <PriorityBadge priority={priority} />
         </div>
         {isCritical && (
-          <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-rose-500/90 px-2 py-0.5 text-[10px] font-bold text-white shadow-lg">
+          <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-rose-500/90 px-2 py-0.5 text-[10px] font-bold text-white shadow-lg shadow-rose-950/50">
             <AlertTriangle className="h-3 w-3" /> {t("critical")}
           </span>
         )}
         {isWarning && (
-          <span className="absolute right-3 top-3 rounded-full bg-amber-500/90 px-2 py-0.5 text-[10px] font-bold text-zinc-950 shadow-lg">
+          <span className="absolute right-3 top-3 rounded-full bg-amber-500/90 px-2 py-0.5 text-[10px] font-bold text-slate-950 shadow-lg shadow-amber-950/50">
             {t("lowStock")}
           </span>
         )}
@@ -66,18 +72,18 @@ export function QuestCard({ quest, pulsing, onSell }: QuestCardProps) {
         <div className="mb-3 flex items-center gap-3.5">
           <RadialGauge pct={clearedPct} color={GAUGE_COLOR[priority]} icon={Package} size={56} stroke={5} />
           <div className="min-w-0 flex-1">
-            <p className="text-[13px] font-semibold text-zinc-200">
+            <p className="text-[13px] font-semibold text-slate-200">
               <span className="font-mono">{cleared}</span> / <span className="font-mono">{product.initialStock}</span>{" "}
-              <span className="font-normal text-zinc-500">{t("unitsCleared")}</span>
+              <span className="font-normal text-slate-500">{t("unitsCleared")}</span>
             </p>
-            <p className="mt-0.5 text-xs text-zinc-500">
-              📦 <span className="font-semibold text-zinc-300">{product.stock}</span> {t("unitsInStock")}
-              {product.price > 0 && <span className="ml-2 font-mono text-zinc-400">${product.price}</span>}
+            <p className="mt-0.5 text-xs text-slate-500">
+              📦 <span className="font-semibold text-slate-300">{product.stock}</span> {t("unitsInStock")}
+              {product.price > 0 && <span className="ml-2 font-mono text-slate-400">${product.price}</span>}
             </p>
           </div>
         </div>
 
-        <p className="mb-3 line-clamp-2 text-xs text-zinc-500">{product.description}</p>
+        <p className="mb-3 line-clamp-2 text-xs text-slate-500">{product.description}</p>
 
         <div className="mb-4 flex items-center gap-4 text-sm">
           <span className="flex items-center gap-1.5 font-bold text-violet-300">

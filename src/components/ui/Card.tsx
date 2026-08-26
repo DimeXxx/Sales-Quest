@@ -3,21 +3,29 @@ import type { HTMLAttributes, ReactNode } from "react";
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   glow?: "none" | "violet" | "amber" | "emerald" | "rose" | "cyan";
+  interactive?: boolean;
 }
 
 const GLOW: Record<NonNullable<CardProps["glow"]>, string> = {
   none: "",
-  violet: "shadow-[0_0_55px_-15px_rgba(167,139,250,0.65)] ring-1 ring-violet-400/20",
-  amber: "shadow-[0_0_55px_-15px_rgba(251,191,36,0.6)] ring-1 ring-amber-400/20",
-  emerald: "shadow-[0_0_55px_-15px_rgba(52,211,153,0.6)] ring-1 ring-emerald-400/20",
-  rose: "shadow-[0_0_55px_-15px_rgba(244,63,94,0.6)] ring-1 ring-rose-400/20",
-  cyan: "shadow-[0_0_55px_-15px_rgba(34,211,238,0.65)] ring-1 ring-cyan-400/20",
+  violet: "shadow-xl shadow-violet-950/30 border-violet-500/30",
+  amber: "shadow-xl shadow-amber-950/30 border-amber-500/50",
+  emerald: "shadow-xl shadow-emerald-950/30 border-emerald-500/50",
+  rose: "shadow-xl shadow-rose-950/30 border-rose-500/50",
+  cyan: "shadow-xl shadow-cyan-950/30 border-cyan-500/40",
 };
 
-export function Card({ children, className = "", glow = "none", ...rest }: CardProps) {
+/**
+ * Glassmorphic base card used throughout the app: semi-transparent slate
+ * surface, soft blur, subtle border that lights up cyan on hover unless a
+ * stronger contextual glow color has already been set via `glow`.
+ */
+export function Card({ children, className = "", glow = "none", interactive = false, ...rest }: CardProps) {
   return (
     <div
-      className={`rounded-2xl border border-white/5 bg-zinc-900/70 backdrop-blur-sm transition-shadow duration-300 ${GLOW[glow]} ${className}`}
+      className={`rounded-2xl border border-slate-800/80 bg-slate-900/60 backdrop-blur-md shadow-xl shadow-cyan-950/10 transition-all duration-300 ${
+        interactive ? "hover:border-cyan-500/40 hover:shadow-cyan-950/20" : ""
+      } ${GLOW[glow]} ${className}`}
       {...rest}
     >
       {children}
