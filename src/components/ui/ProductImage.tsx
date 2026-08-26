@@ -37,8 +37,7 @@ export function ProductImage({ src, name, category, className = "", accentFrom =
     let cancelled = false;
     setLoading(true);
     setFailed(false);
-    const query = category ? `${category} product photo` : name;
-    findProductPhoto(query).then((url) => {
+    findProductPhoto(name, category).then((url) => {
       if (cancelled) return;
       if (url) {
         setResolvedUrl(url);
