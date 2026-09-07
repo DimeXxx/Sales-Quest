@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LayoutDashboard, LogOut, Package, Shield, Skull, TrendingUp, Users } from "lucide-react";
+import { LayoutDashboard, LogOut, Package, RotateCcw, Shield, Skull, TrendingUp, Users } from "lucide-react";
 import type { BossFight, FocusProduct, Manager, Priority, Product } from "../../types/sales";
 import type { ParsedProductRow } from "../../lib/excelImport";
 import { useLanguage } from "../../i18n/LanguageContext";
@@ -8,8 +8,9 @@ import { BgDecor } from "../ui/BgDecor";
 import { Card } from "../ui/Card";
 import { AdminPanel } from "./AdminPanel";
 import { ManagersPanel } from "./ManagersPanel";
+import { ResetPanel } from "./ResetPanel";
 
-type AdminSection = "overview" | "products" | "bossfights" | "managers";
+type AdminSection = "overview" | "products" | "bossfights" | "managers" | "reset";
 
 interface AdminAppProps {
   managerName: string;
@@ -34,6 +35,12 @@ interface AdminAppProps {
   onRemoveFocusProduct: (id: string) => void;
   onToggleBossFight: (id: string) => void;
   onAdjustManager: (managerId: string, delta: { coins?: number; xp?: number }) => void;
+  onResetAll: () => void;
+  onResetManager: (id: string) => void;
+  onResetAllManagers: () => void;
+  onResetAllStock: () => void;
+  onResetAllBossFights: () => void;
+  onResetAchievements: () => void;
   logout: () => void;
 }
 
@@ -55,6 +62,12 @@ export function AdminApp({
   onRemoveFocusProduct,
   onToggleBossFight,
   onAdjustManager,
+  onResetAll,
+  onResetManager,
+  onResetAllManagers,
+  onResetAllStock,
+  onResetAllBossFights,
+  onResetAchievements,
   logout,
 }: AdminAppProps) {
   const { t } = useLanguage();
@@ -68,6 +81,7 @@ export function AdminApp({
     { id: "products", label: t("adminNavProducts"), icon: Package },
     { id: "bossfights", label: t("adminNavBossFights"), icon: Skull },
     { id: "managers", label: t("adminNavManagers"), icon: Users },
+    { id: "reset", label: t("adminNavReset"), icon: RotateCcw },
   ];
 
   return (
@@ -157,6 +171,20 @@ export function AdminApp({
         )}
 
         {section === "managers" && <ManagersPanel managers={managers} onAdjust={onAdjustManager} />}
+
+        {section === "reset" && (
+          <ResetPanel
+            managers={managers}
+            products={products}
+            bossFights={bossFights}
+            onResetAll={onResetAll}
+            onResetManager={onResetManager}
+            onResetAllManagers={onResetAllManagers}
+            onResetAllStock={onResetAllStock}
+            onResetAllBossFights={onResetAllBossFights}
+            onResetAchievements={onResetAchievements}
+          />
+        )}
       </div>
     </div>
   );

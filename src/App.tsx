@@ -130,6 +130,12 @@ function RoutedAdminApp({ accountManagerId, accountName, accountRole, logout }: 
       onRemoveFocusProduct={game.removeFocusProduct}
       onToggleBossFight={game.toggleBossFight}
       onAdjustManager={game.adjustManager}
+      onResetAll={game.resetEverything}
+      onResetManager={game.resetManagerProgress}
+      onResetAllManagers={game.resetAllManagersProgress}
+      onResetAllStock={game.resetAllStock}
+      onResetAllBossFights={game.resetAllBossFights}
+      onResetAchievements={game.resetAchievements}
       logout={logout}
     />
   );

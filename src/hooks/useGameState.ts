@@ -31,7 +31,7 @@ export function useGameState({ pushToast, currentUserId }: UseGameStateArgs) {
   const [managers, setManagers] = useState<Manager[]>(MANAGERS);
   const [rewards] = useState<Reward[]>(REWARDS);
   const [bossFights, setBossFights] = useState<BossFight[]>(BOSS_FIGHTS);
-  const [achievements] = useState(ACHIEVEMENTS);
+  const [achievements, setAchievements] = useState(ACHIEVEMENTS);
   const [pulseFocusId, setPulseFocusId] = useState<string | null>(null);
 
   const currentManager = managers.find((m) => m.id === currentUserId) ?? managers[0];
@@ -275,6 +275,46 @@ export function useGameState({ pushToast, currentUserId }: UseGameStateArgs) {
 
   const leaderboard = useMemo(() => [...managers].sort((a, b) => b.xp - a.xp), [managers]);
 
+  // ---- admin: reset actions (all-or-selective) --------------------------
+  const resetManagerProgress = useCallback((managerId: string) => {
+    setManagers((prev) =>
+      prev.map((m) => (m.id === managerId ? { ...m, level: 1, xp: 0, coins: 0, questsCompleted: 0, streak: 0 } : m))
+    );
+  }, []);
+
+  const resetAllManagersProgress = useCallback(() => {
+    setManagers((prev) => prev.map((m) => ({ ...m, level: 1, xp: 0, coins: 0, questsCompleted: 0, streak: 0 })));
+  }, []);
+
+  const resetProductStock = useCallback((productId: string) => {
+    setProducts((prev) => prev.map((p) => (p.id === productId ? { ...p, stock: p.initialStock } : p)));
+  }, []);
+
+  const resetAllStock = useCallback(() => {
+    setProducts((prev) => prev.map((p) => ({ ...p, stock: p.initialStock })));
+  }, []);
+
+  const resetBossFightProgress = useCallback((bossFightId: string) => {
+    setBossFights((prev) => prev.map((bf) => (bf.id === bossFightId ? { ...bf, currentQuantity: 0 } : bf)));
+  }, []);
+
+  const resetAllBossFights = useCallback(() => {
+    setBossFights((prev) => prev.map((bf) => ({ ...bf, currentQuantity: 0 })));
+  }, []);
+
+  const resetAchievements = useCallback(() => {
+    setAchievements((prev) => prev.map((a) => ({ ...a, unlocked: false })));
+  }, []);
+
+  /** Zeroes every running counter (managers, stock, boss fights, achievements) without deleting any configured products/accounts. */
+  const resetEverything = useCallback(() => {
+    resetAllManagersProgress();
+    resetAllStock();
+    resetAllBossFights();
+    resetAchievements();
+    pushToast("Все данные сброшены", "Менеджеры, склад, Boss Fight и ачивки — на старте");
+  }, [resetAllManagersProgress, resetAllStock, resetAllBossFights, resetAchievements, pushToast]);
+
   return {
     products,
     focusProducts,
@@ -294,5 +334,13 @@ export function useGameState({ pushToast, currentUserId }: UseGameStateArgs) {
     adjustManager,
     removeFocusProduct,
     toggleBossFight,
+    resetManagerProgress,
+    resetAllManagersProgress,
+    resetProductStock,
+    resetAllStock,
+    resetBossFightProgress,
+    resetAllBossFights,
+    resetAchievements,
+    resetEverything,
   };
 }
