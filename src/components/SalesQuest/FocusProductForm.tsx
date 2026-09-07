@@ -29,8 +29,6 @@ const EMPTY = {
   description: "",
   price: "",
   stock: "",
-  stockAgeDays: "",
-  marginPercent: "",
   priority: "normal" as Priority,
   xp: "",
   coins: "",
@@ -42,8 +40,11 @@ export function FocusProductForm({ onCreate }: FocusProductFormProps) {
   const [autoReward, setAutoReward] = useState(true);
 
   const stock = Number(form.stock) || 0;
-  const stockAgeDays = Number(form.stockAgeDays) || 0;
-  const marginPercent = Number(form.marginPercent) || 0;
+  // Stock age / margin no longer collected in the UI — the Reward Engine
+  // treats them as neutral (no age/margin boost) and reward is driven by
+  // priority alone.
+  const stockAgeDays = 0;
+  const marginPercent = 0;
 
   const suggested = calculateReward({ stock, stockAgeDays, marginPercent, priority: form.priority });
   const xpReward = autoReward ? suggested.xpReward : Number(form.xp) || 0;
@@ -82,8 +83,6 @@ export function FocusProductForm({ onCreate }: FocusProductFormProps) {
         <input className={field} type="number" placeholder={t("price")} value={form.price} onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))} />
         <input className={`${field} sm:col-span-2`} placeholder={t("description")} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
         <input className={field} type="number" placeholder={t("stock")} value={form.stock} onChange={(e) => setForm((f) => ({ ...f, stock: e.target.value }))} />
-        <input className={field} type="number" placeholder={t("stockAge")} value={form.stockAgeDays} onChange={(e) => setForm((f) => ({ ...f, stockAgeDays: e.target.value }))} />
-        <input className={field} type="number" placeholder={t("margin")} value={form.marginPercent} onChange={(e) => setForm((f) => ({ ...f, marginPercent: e.target.value }))} />
         <select className={field} value={form.priority} onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value as Priority }))}>
           <option value="critical">{t("filterCritical")}</option>
           <option value="high">{t("filterHigh")}</option>

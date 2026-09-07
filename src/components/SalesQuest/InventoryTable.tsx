@@ -26,8 +26,6 @@ export function InventoryTable({ rows, onRemove }: InventoryTableProps) {
               <th className="px-4 py-3 font-semibold">Price</th>
               <th className="px-4 py-3 font-semibold">Stock</th>
               <th className="px-4 py-3 font-semibold">Priority</th>
-              <th className="px-4 py-3 font-semibold">Stock Age</th>
-              <th className="px-4 py-3 font-semibold">Margin</th>
               <th className="px-4 py-3 font-semibold">XP</th>
               <th className="px-4 py-3 font-semibold">Coins</th>
               <th className="px-4 py-3 font-semibold">Status</th>
@@ -47,8 +45,6 @@ export function InventoryTable({ rows, onRemove }: InventoryTableProps) {
                 <td className="px-4 py-3 font-mono text-slate-300">{product.price ? `$${product.price}` : "—"}</td>
                 <td className="px-4 py-3 font-mono text-slate-300">{product.stock}</td>
                 <td className="px-4 py-3"><PriorityBadge priority={focusProduct.priority} /></td>
-                <td className="px-4 py-3 text-slate-400">{product.stockAgeDays} days</td>
-                <td className="px-4 py-3 text-slate-400">{product.marginPercent}%</td>
                 <td className="px-4 py-3 font-semibold text-violet-300">{focusProduct.xpReward} XP</td>
                 <td className="px-4 py-3 font-semibold text-amber-300">{focusProduct.coinReward} Coins</td>
                 <td className="px-4 py-3">
@@ -68,7 +64,7 @@ export function InventoryTable({ rows, onRemove }: InventoryTableProps) {
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={11} className="px-4 py-8 text-center text-sm text-slate-500">
+                <td colSpan={9} className="px-4 py-8 text-center text-sm text-slate-500">
                   Нет активных фокусных товаров.
                 </td>
               </tr>
