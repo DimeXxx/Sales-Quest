@@ -17,7 +17,7 @@ export interface Product {
   initialStock: number; // snapshot at focus-product creation, used for clearance gauges
   stockAgeDays: number;
   marginPercent: number;
-  imageUrl?: string; // explicit override; if unset, ProductImage resolves a live photo by name/category
+  imageUrl?: string | null; // explicit override; if unset, ProductImage resolves a live photo by name/category
 }
 
 export interface FocusProduct {
@@ -58,6 +58,8 @@ export interface Manager {
   questsCompleted: number;
   streak: number;
   role: UserRole;
+  email?: string;
+  status?: "pending" | "approved";
 }
 
 export interface Reward {

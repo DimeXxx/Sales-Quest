@@ -1,346 +1,100 @@
-import { useCallback, useMemo, useState } from "react";
-import type {
-  BossFight,
-  FocusProduct,
-  Manager,
-  Priority,
-  Product,
-  QuestCardData,
-  Reward,
-} from "../types/sales";
-import { levelFromXp, calculateReward } from "../types/sales";
-import {
-  ACHIEVEMENTS,
-  BOSS_FIGHTS,
-  FOCUS_PRODUCTS,
-  MANAGERS,
-  PRODUCTS,
-  REWARDS,
-} from "../data/mockData";
-import { salesRepository } from "../services/salesRepository";
+import { useCallback, useEffect, useState } from "react";
+import type { Achievement, BossFight, Manager, QuestCardData, Reward } from "../types/sales";
+import { api, ApiError } from "../lib/api";
+import { useAuth } from "../auth/AuthContext";
 import type { ToastMessage } from "../components/ui/Toast";
 
 interface UseGameStateArgs {
   pushToast: (title: string, subtitle?: string, kind?: ToastMessage["kind"]) => void;
-  currentUserId: string;
 }
 
-export function useGameState({ pushToast, currentUserId }: UseGameStateArgs) {
-  const [products, setProducts] = useState<Product[]>(PRODUCTS);
-  const [focusProducts, setFocusProducts] = useState<FocusProduct[]>(FOCUS_PRODUCTS);
-  const [managers, setManagers] = useState<Manager[]>(MANAGERS);
-  const [rewards] = useState<Reward[]>(REWARDS);
-  const [bossFights, setBossFights] = useState<BossFight[]>(BOSS_FIGHTS);
-  const [achievements, setAchievements] = useState(ACHIEVEMENTS);
+/**
+ * Manager-facing game data — quests, rewards, boss fights, achievements,
+ * leaderboard — all fetched from the backend API and kept in sync with it.
+ * The current manager's own profile (XP/Coins/level) lives in AuthContext
+ * (useAuth().account), since the backend account IS the manager profile.
+ */
+export function useGameState({ pushToast }: UseGameStateArgs) {
+  const { account, refresh: refreshAccount } = useAuth();
+  const [quests, setQuests] = useState<QuestCardData[]>([]);
+  const [rewards, setRewards] = useState<Reward[]>([]);
+  const [bossFights, setBossFights] = useState<BossFight[]>([]);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [leaderboard, setLeaderboard] = useState<Manager[]>([]);
   const [pulseFocusId, setPulseFocusId] = useState<string | null>(null);
 
-  const currentManager = managers.find((m) => m.id === currentUserId) ?? managers[0];
-
-  // ---- derived: quest cards for the Quests tab ---------------------------
-  const questCards: QuestCardData[] = useMemo(() => {
-    return focusProducts
-      .filter((fp) => fp.active)
-      .map((fp) => {
-        const product = products.find((p) => p.id === fp.productId)!;
-        return {
-          focusProductId: fp.id,
-          product,
-          priority: fp.priority,
-          xpReward: fp.xpReward,
-          coinReward: fp.coinReward,
-        };
-      })
-      .filter((q) => q.product);
-  }, [focusProducts, products]);
-
-  // ---- register a sale ----------------------------------------------------
-  const registerSale = useCallback(
-    (focusProductId: string, quantity = 1) => {
-      const fp = focusProducts.find((f) => f.id === focusProductId);
-      if (!fp) return;
-      const product = products.find((p) => p.id === fp.productId);
-      if (!product || product.stock <= 0) return;
-
-      const qty = Math.min(quantity, product.stock);
-      const xpEarned = fp.xpReward * qty;
-      const coinsEarned = fp.coinReward * qty;
-
-      setProducts((prev) =>
-        prev.map((p) => (p.id === product.id ? { ...p, stock: Math.max(0, p.stock - qty) } : p))
-      );
-
-      setManagers((prev) =>
-        prev.map((m) => {
-          if (m.id !== currentUserId) return m;
-          const prevLevel = levelFromXp(m.xp).level;
-          const newXp = m.xp + xpEarned;
-          const newLevel = levelFromXp(newXp).level;
-          if (newLevel > prevLevel) {
-            pushToast(`🚀 LEVEL UP! Level ${newLevel}`, "Ты становишься мастером охоты", "levelup");
-          }
-          return {
-            ...m,
-            xp: newXp,
-            coins: m.coins + coinsEarned,
-            questsCompleted: m.questsCompleted + 1,
-            level: newLevel,
-          };
-        })
-      );
-
-      // Boss fight progress — if this SKU matches an active boss fight target
-      setBossFights((prev) =>
-        prev.map((bf) =>
-          bf.active && bf.targetSku === product.sku
-            ? { ...bf, currentQuantity: Math.min(bf.targetQuantity, bf.currentQuantity + qty) }
-            : bf
-        )
-      );
-
-      setPulseFocusId(focusProductId);
-      window.setTimeout(() => setPulseFocusId(null), 500);
-
-      pushToast("🎯 Продажа зафиксирована!", `+${xpEarned} XP · +${coinsEarned} Coins`);
-
-      salesRepository.registerSale({
-        id: `s${Date.now()}`,
-        questId: focusProductId,
-        productId: product.id,
-        managerId: currentUserId,
-        quantity: qty,
-        xpEarned,
-        coinsEarned,
-        createdAt: new Date().toISOString(),
-      });
-    },
-    [focusProducts, products, pushToast, currentUserId]
-  );
-
-  // ---- reward store ---------------------------------------------------
-  const redeemReward = useCallback(
-    (reward: Reward) => {
-      if (currentManager.coins < reward.costCoins) {
-        pushToast("Не хватает", `Нужно ещё ${reward.costCoins - currentManager.coins} Coins`, "error");
-        return;
-      }
-      setManagers((prev) =>
-        prev.map((m) => (m.id === currentUserId ? { ...m, coins: m.coins - reward.costCoins } : m))
-      );
-      pushToast("🎁 Награда получена!", reward.name);
-    },
-    [currentManager.coins, pushToast, currentUserId]
-  );
-
-  // ---- admin: add a focus product -----------------------------------
-  const addFocusProduct = useCallback(
-    (input: {
-      name: string;
-      sku: string;
-      category: string;
-      description: string;
-      price: number;
-      stock: number;
-      stockAgeDays: number;
-      marginPercent: number;
-      priority: Priority;
-      xpReward: number;
-      coinReward: number;
-      imageUrl?: string;
-    }) => {
-      const productId = `p${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-      const focusId = `fp${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-      const newProduct: Product = {
-        id: productId,
-        name: input.name,
-        sku: input.sku,
-        category: input.category,
-        description: input.description,
-        price: input.price,
-        stock: input.stock,
-        initialStock: input.stock,
-        stockAgeDays: input.stockAgeDays,
-        marginPercent: input.marginPercent,
-        imageUrl: input.imageUrl,
-      };
-      const newFocus: FocusProduct = {
-        id: focusId,
-        productId,
-        priority: input.priority,
-        xpReward: input.xpReward,
-        coinReward: input.coinReward,
-        active: true,
-      };
-      setProducts((prev) => [...prev, newProduct]);
-      setFocusProducts((prev) => [...prev, newFocus]);
-      pushToast("Квест создан", `${input.name} теперь виден менеджерам`);
-    },
-    [pushToast]
-  );
-
-  // ---- admin: bulk import from Excel ----------------------------------
-  const bulkImportProducts = useCallback(
-    (
-      rows: {
-        name: string;
-        sku: string;
-        description: string;
-        category: string;
-        price: number;
-        stock: number;
-        stockAgeDays: number;
-        marginPercent: number;
-        priority: Priority;
-      }[]
-    ) => {
-      const newProducts: Product[] = [];
-      const newFocus: FocusProduct[] = [];
-      rows.forEach((row, i) => {
-        const productId = `p${Date.now()}-${i}`;
-        const focusId = `fp${Date.now()}-${i}`;
-        const reward = calculateReward({
-          stock: row.stock,
-          stockAgeDays: row.stockAgeDays,
-          marginPercent: row.marginPercent,
-          priority: row.priority,
-        });
-        newProducts.push({
-          id: productId,
-          name: row.name,
-          sku: row.sku,
-          category: row.category,
-          description: row.description,
-          price: row.price,
-          stock: row.stock,
-          initialStock: row.stock,
-          stockAgeDays: row.stockAgeDays,
-          marginPercent: row.marginPercent,
-        });
-        newFocus.push({
-          id: focusId,
-          productId,
-          priority: row.priority,
-          xpReward: reward.xpReward,
-          coinReward: reward.coinReward,
-          active: true,
-        });
-      });
-      setProducts((prev) => [...prev, ...newProducts]);
-      setFocusProducts((prev) => [...prev, ...newFocus]);
-      pushToast(`Импортировано ${rows.length} товаров`, "Все позиции доступны менеджерам как квесты");
-    },
-    [pushToast]
-  );
-
-  // ---- auth: register a brand-new manager account ----------------------
-  const addManager = useCallback((input: { id: string; name: string; avatar: string; role: Manager["role"] }) => {
-    setManagers((prev) => [
-      ...prev,
-      {
-        id: input.id,
-        name: input.name,
-        avatar: input.avatar,
-        level: 1,
-        xp: 0,
-        coins: 0,
-        questsCompleted: 0,
-        streak: 0,
-        role: input.role,
-      },
+  const loadAll = useCallback(async () => {
+    const [questsRes, rewardsRes, bossRes, achRes, lbRes] = await Promise.all([
+      api.get<{ quests: QuestCardData[] }>("/quests"),
+      api.get<{ rewards: Reward[] }>("/rewards"),
+      api.get<{ bossFights: BossFight[] }>("/boss-fights"),
+      api.get<{ achievements: Achievement[] }>("/achievements"),
+      api.get<{ managers: Manager[] }>("/leaderboard"),
     ]);
+    setQuests(questsRes.quests);
+    setRewards(rewardsRes.rewards);
+    setBossFights(bossRes.bossFights);
+    setAchievements(achRes.achievements);
+    setLeaderboard(lbRes.managers);
   }, []);
 
-  const removeFocusProduct = useCallback((focusProductId: string) => {
-    setFocusProducts((prev) => prev.filter((f) => f.id !== focusProductId));
-  }, []);
+  useEffect(() => {
+    loadAll();
+  }, [loadAll]);
 
-  const toggleBossFight = useCallback((id: string) => {
-    setBossFights((prev) => prev.map((bf) => (bf.id === id ? { ...bf, active: !bf.active } : bf)));
-  }, []);
+  const registerSale = useCallback(
+    async (focusProductId: string, quantity = 1) => {
+      try {
+        const result = await api.post<{ xpEarned: number; coinsEarned: number; leveledUp: boolean; newLevel: number }>(
+          "/sales",
+          { focusProductId, quantity }
+        );
+        setPulseFocusId(focusProductId);
+        window.setTimeout(() => setPulseFocusId(null), 500);
 
-  // ---- admin: directly grant/adjust a manager's coins or XP -------------
-  const adjustManager = useCallback((managerId: string, delta: { coins?: number; xp?: number }) => {
-    setManagers((prev) =>
-      prev.map((m) => {
-        if (m.id !== managerId) return m;
-        const newXp = Math.max(0, m.xp + (delta.xp ?? 0));
-        return {
-          ...m,
-          coins: Math.max(0, m.coins + (delta.coins ?? 0)),
-          xp: newXp,
-          level: levelFromXp(newXp).level,
-        };
-      })
-    );
-  }, []);
+        await refreshAccount();
+        await loadAll();
 
-  const leaderboard = useMemo(() => [...managers].sort((a, b) => b.xp - a.xp), [managers]);
+        if (result.leveledUp) {
+          pushToast(`🚀 LEVEL UP! Level ${result.newLevel}`, "Ты становишься мастером охоты", "levelup");
+        }
+        pushToast("🎯 Продажа зафиксирована!", `+${result.xpEarned} XP · +${result.coinsEarned} Coins`);
+      } catch (e) {
+        const code = e instanceof ApiError ? e.code : "unknown_error";
+        pushToast("Не удалось зафиксировать продажу", code, "error");
+      }
+    },
+    [loadAll, refreshAccount, pushToast]
+  );
 
-  // ---- admin: reset actions (all-or-selective) --------------------------
-  const resetManagerProgress = useCallback((managerId: string) => {
-    setManagers((prev) =>
-      prev.map((m) => (m.id === managerId ? { ...m, level: 1, xp: 0, coins: 0, questsCompleted: 0, streak: 0 } : m))
-    );
-  }, []);
-
-  const resetAllManagersProgress = useCallback(() => {
-    setManagers((prev) => prev.map((m) => ({ ...m, level: 1, xp: 0, coins: 0, questsCompleted: 0, streak: 0 })));
-  }, []);
-
-  const resetProductStock = useCallback((productId: string) => {
-    setProducts((prev) => prev.map((p) => (p.id === productId ? { ...p, stock: p.initialStock } : p)));
-  }, []);
-
-  const resetAllStock = useCallback(() => {
-    setProducts((prev) => prev.map((p) => ({ ...p, stock: p.initialStock })));
-  }, []);
-
-  const resetBossFightProgress = useCallback((bossFightId: string) => {
-    setBossFights((prev) => prev.map((bf) => (bf.id === bossFightId ? { ...bf, currentQuantity: 0 } : bf)));
-  }, []);
-
-  const resetAllBossFights = useCallback(() => {
-    setBossFights((prev) => prev.map((bf) => ({ ...bf, currentQuantity: 0 })));
-  }, []);
-
-  const resetAchievements = useCallback(() => {
-    setAchievements((prev) => prev.map((a) => ({ ...a, unlocked: false })));
-  }, []);
-
-  /** Zeroes every running counter (managers, stock, boss fights, achievements) without deleting any configured products/accounts. */
-  const resetEverything = useCallback(() => {
-    resetAllManagersProgress();
-    resetAllStock();
-    resetAllBossFights();
-    resetAchievements();
-    pushToast("Все данные сброшены", "Менеджеры, склад, Boss Fight и ачивки — на старте");
-  }, [resetAllManagersProgress, resetAllStock, resetAllBossFights, resetAchievements, pushToast]);
+  const redeemReward = useCallback(
+    async (reward: Reward) => {
+      try {
+        await api.post(`/rewards/${reward.id}/redeem`);
+        await refreshAccount();
+        pushToast("🎁 Награда получена!", reward.name);
+      } catch (e) {
+        if (e instanceof ApiError && e.code === "not_enough_coins") {
+          pushToast("Не хватает", "Недостаточно Coins", "error");
+        } else {
+          pushToast("Не удалось обменять", "", "error");
+        }
+      }
+    },
+    [refreshAccount, pushToast]
+  );
 
   return {
-    products,
-    focusProducts,
-    questCards,
+    currentManager: account as Manager,
+    quests,
+    questCards: quests,
     rewards,
     bossFights,
     achievements,
-    managers,
     leaderboard,
-    currentManager,
     pulseFocusId,
     registerSale,
     redeemReward,
-    addFocusProduct,
-    bulkImportProducts,
-    addManager,
-    adjustManager,
-    removeFocusProduct,
-    toggleBossFight,
-    resetManagerProgress,
-    resetAllManagersProgress,
-    resetProductStock,
-    resetAllStock,
-    resetBossFightProgress,
-    resetAllBossFights,
-    resetAchievements,
-    resetEverything,
+    refetch: loadAll,
   };
 }

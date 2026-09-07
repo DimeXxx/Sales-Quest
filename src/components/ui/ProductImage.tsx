@@ -4,7 +4,7 @@ import { findProductPhoto } from "../../lib/productImageSearch";
 
 interface ProductImageProps {
   /** Explicit override URL — if given, used directly (with graceful fallback on load error). */
-  src?: string;
+  src?: string | null;
   /** Product name — used to build the live internet search query when no `src` is given. */
   name: string;
   /** Product category — usually gives better search results than the exact SKU-heavy name. */

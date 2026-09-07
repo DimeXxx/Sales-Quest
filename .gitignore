@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# SQLite database (local dev only — production data lives on the Railway volume)
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm

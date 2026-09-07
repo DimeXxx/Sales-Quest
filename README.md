@@ -57,9 +57,21 @@ If you use SSH instead of HTTPS, use
 
 ## 🚂 Deploy to Railway
 
-The repo already includes `railway.json` and `nixpacks.toml`, and a small
-Express server (`server.js`) that serves the production build — Railway just
-needs a Node process to run, and this repo gives it one.
+The repo already includes `railway.json` and `nixpacks.toml`, and a real
+Express + SQLite backend (`server/`) that serves the production build and
+the API — Railway just needs a Node process to run, and this repo gives it
+one.
+
+**Two extra steps this app needs (do these once):**
+
+1. **Add a persistent Volume** — Settings → Volumes → New Volume, mount path
+   `/app/data`. Without this, every redeploy wipes the SQLite database
+   (all accounts, sales, stock changes) because each deploy is a fresh
+   container.
+2. **Set environment variables** — Settings → Variables:
+   - `DB_PATH` = `/app/data/salesquest.db` (must match the volume's mount path)
+   - `JWT_SECRET` = a long random string (`openssl rand -base64 32`)
+   - `NODE_ENV` = `production`
 
 **Option A — from the Railway dashboard (recommended):**
 
@@ -85,40 +97,55 @@ railway up
 
 ## 🔐 Security notes
 
-This MVP uses **client-side, demo-grade authentication** (accounts and
-plaintext passwords are stored in the browser's `localStorage`). This is
-fine for an internal pilot with your own team, but **must not** be exposed
-publicly as-is. Before a wider release you'll want:
+The app now has a **real backend** (Express + SQLite) — no more localStorage
+accounts. Passwords are hashed with bcrypt, sessions are signed JWTs in
+httpOnly cookies, and every sale/redeem/admin action is validated server-side
+(a manager can't grant themselves coins from devtools anymore).
 
-- A real backend with hashed passwords (bcrypt/argon2) and sessions or JWT
-- HTTPS-only cookies instead of localStorage for session tokens
-- Server-side validation of every sale/redeem/admin action (right now all
-  game logic runs in the browser and can be tampered with via devtools)
-- Real data source instead of `MockSalesRepository`
-  (`src/services/salesRepository.ts` already defines the interface a REST
-  API / 1C / Bitrix24 integration should implement)
+Two things you must set before a real deploy:
+
+- **`JWT_SECRET`** — a long random string. Without it, sessions are signed
+  with an insecure hardcoded dev fallback. Generate one with
+  `openssl rand -base64 32` and set it as a Railway environment variable.
+- **A persistent volume for the database** — see the Railway section below.
+  Without it, every new deploy wipes all accounts/sales/stock data.
+
+Self-registration always creates a `manager` role with `pending` status —
+nobody can grant themselves ROP/admin access, and new managers can't use the
+app until an existing ROP/admin approves them from the Admin Panel's
+"Ожидают подтверждения" (Pending Approvals) section.
 
 ## 🗂 Project structure
 
 ```
+server/                     # Express + SQLite backend (real, not mocked)
+  db.js                      # schema + seed data, SQLite file at DB_PATH
+  auth.js                    # bcrypt hashing, JWT sign/verify, middleware
+  routes/
+    auth.js                   # register, login, logout, me
+    app.js                     # quests, sales, rewards, boss fights, leaderboard
+    admin.js                   # account approval, inventory CRUD, resets
+  index.js                   # wires routes + serves the built frontend
+  package.json                # {"type":"commonjs"} — overrides root ESM setting
+
 src/
   types/sales.ts            # domain types + Reward Engine + level system
-  data/mockData.ts          # demo products, managers, rewards, boss fights
-  services/salesRepository.ts  # repository abstraction (swap Mock → real API)
-  auth/                     # demo auth (accounts store + AuthContext)
-  i18n/                     # RU/RO translations + LanguageContext
+  auth/AuthContext.tsx        # calls the real /api/auth/* endpoints
+  i18n/                      # RU/RO translations + LanguageContext
   lib/
-    excelImport.ts          # SheetJS-based Excel/CSV parser
-    categoryColors.ts        # consistent per-category accent colors
+    api.ts                    # fetch wrapper (credentials: include)
+    excelImport.ts            # SheetJS-based Excel/CSV parser
+    categoryColors.ts          # consistent per-category accent colors
+    productImageSearch.ts      # live Wikimedia Commons photo search
   hooks/
-    useGameState.ts          # all game logic (sales, rewards, admin actions)
+    useGameState.ts            # manager-facing data (quests/rewards/leaderboard)
+    useAdminState.ts           # admin-facing data + all admin mutations
     useToasts.ts
   components/
-    ui/                      # Button, Card, Badge, Progress, Toast, RadialGauge…
-    auth/LoginScreen.tsx
-    SalesQuest/               # ProfileCard, QuestCard, Leaderboard, AdminPanel…
-  App.tsx
-server.js                   # production static server (used by Railway)
+    ui/                        # Button, Card, Badge, Progress, Toast, RadialGauge…
+    auth/                      # LoginScreen, PendingApprovalScreen
+    SalesQuest/                 # ProfileCard, QuestCard, AdminApp, ResetPanel…
+  App.tsx                    # loading / login / pending / role-based routing
 ```
 
 ## 🧭 Roadmap (from the original spec)

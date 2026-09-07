@@ -2,7 +2,6 @@ import { Target, Trophy } from "lucide-react";
 import type { Manager } from "../../types/sales";
 import { Card } from "../ui/Card";
 import { Progress } from "../ui/Progress";
-import { CURRENT_MANAGER_ID } from "../../data/mockData";
 import { useLanguage } from "../../i18n/LanguageContext";
 import { useAuth } from "../../auth/AuthContext";
 
@@ -15,7 +14,7 @@ interface LeaderboardProps {
 export function Leaderboard({ managers }: LeaderboardProps) {
   const { t } = useLanguage();
   const { account } = useAuth();
-  const currentId = account?.managerId ?? CURRENT_MANAGER_ID;
+  const currentId = account?.id ?? managers[0]?.id;
 
   const top = managers.filter((m) => m.role === "manager").slice(0, 5);
   const you = managers.find((m) => m.id === currentId) ?? managers[0];

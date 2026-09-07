@@ -1,47 +1,69 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
-import type { UserRole } from "../types/sales";
-import * as accountsApi from "./accounts";
-import type { Account } from "./accounts";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import type { Manager } from "../types/sales";
+import { api, ApiError } from "../lib/api";
+
+type Account = Manager; // the backend account IS the manager profile
 
 interface AuthContextValue {
   account: Account | null;
+  isLoading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => boolean;
-  register: (name: string, email: string, password: string, role: UserRole) => { ok: true } | { ok: false; error: string };
-  logout: () => void;
+  login: (email: string, password: string) => Promise<{ ok: true } | { ok: false; error: string }>;
+  register: (name: string, email: string, password: string) => Promise<{ ok: true } | { ok: false; error: string }>;
+  logout: () => Promise<void>;
+  refresh: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [account, setAccount] = useState<Account | null>(() => {
-    const sessionId = accountsApi.getSessionManagerId();
-    if (!sessionId) return null;
-    return accountsApi.getAccounts().find((a) => a.managerId === sessionId) ?? null;
-  });
+  const [account, setAccount] = useState<Account | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const login = useCallback((email: string, password: string) => {
-    const result = accountsApi.login(email, password);
-    if (!result) return false;
-    setAccount(result);
-    return true;
+  const refresh = useCallback(async () => {
+    try {
+      const { account } = await api.get<{ account: Account }>("/auth/me");
+      setAccount(account);
+    } catch {
+      setAccount(null);
+    }
   }, []);
 
-  const register = useCallback((name: string, email: string, password: string, role: UserRole) => {
-    const result = accountsApi.register(name, email, password, role);
-    if ("error" in result) return { ok: false as const, error: result.error };
-    setAccount(result);
-    return { ok: true as const };
+  useEffect(() => {
+    refresh().finally(() => setIsLoading(false));
+  }, [refresh]);
+
+  const login = useCallback(async (email: string, password: string) => {
+    try {
+      const { account } = await api.post<{ account: Account }>("/auth/login", { email, password });
+      setAccount(account);
+      return { ok: true as const };
+    } catch (e) {
+      const code = e instanceof ApiError ? e.code : "unknown_error";
+      return { ok: false as const, error: code };
+    }
   }, []);
 
-  const logout = useCallback(() => {
-    accountsApi.logout();
+  const register = useCallback(async (name: string, email: string, password: string) => {
+    try {
+      // Role is always "manager" server-side — self-registration can never grant admin access.
+      const { account } = await api.post<{ account: Account }>("/auth/register", { name, email, password });
+      setAccount(account);
+      return { ok: true as const };
+    } catch (e) {
+      const code = e instanceof ApiError ? e.code : "unknown_error";
+      return { ok: false as const, error: code };
+    }
+  }, []);
+
+  const logout = useCallback(async () => {
+    await api.post("/auth/logout").catch(() => {});
     setAccount(null);
   }, []);
 
   const value = useMemo(
-    () => ({ account, isAuthenticated: Boolean(account), login, register, logout }),
-    [account, login, register, logout]
+    () => ({ account, isLoading, isAuthenticated: Boolean(account), login, register, logout, refresh }),
+    [account, isLoading, login, register, logout, refresh]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

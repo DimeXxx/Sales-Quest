@@ -1,83 +1,41 @@
 import { useState } from "react";
-import { LayoutDashboard, LogOut, Package, RotateCcw, Shield, Skull, TrendingUp, Users } from "lucide-react";
-import type { BossFight, FocusProduct, Manager, Priority, Product } from "../../types/sales";
-import type { ParsedProductRow } from "../../lib/excelImport";
+import { Clock, LayoutDashboard, LogOut, Package, RotateCcw, Shield, Skull, TrendingUp, Users } from "lucide-react";
 import { useLanguage } from "../../i18n/LanguageContext";
+import { useToasts } from "../../hooks/useToasts";
+import { useAdminState } from "../../hooks/useAdminState";
 import { LanguageSwitcher } from "../ui/LanguageSwitcher";
 import { BgDecor } from "../ui/BgDecor";
 import { Card } from "../ui/Card";
+import { ToastStack } from "../ui/Toast";
 import { AdminPanel } from "./AdminPanel";
 import { ManagersPanel } from "./ManagersPanel";
 import { ResetPanel } from "./ResetPanel";
+import { PendingApprovalsPanel } from "./PendingApprovalsPanel";
 
-type AdminSection = "overview" | "products" | "bossfights" | "managers" | "reset";
+type AdminSection = "overview" | "pending" | "products" | "bossfights" | "managers" | "reset";
 
 interface AdminAppProps {
   managerName: string;
-  products: Product[];
-  focusProducts: FocusProduct[];
-  bossFights: BossFight[];
-  managers: Manager[];
-  onCreateFocusProduct: (input: {
-    name: string;
-    sku: string;
-    category: string;
-    description: string;
-    price: number;
-    stock: number;
-    stockAgeDays: number;
-    marginPercent: number;
-    priority: Priority;
-    xpReward: number;
-    coinReward: number;
-  }) => void;
-  onBulkImport: (rows: ParsedProductRow[]) => void;
-  onRemoveFocusProduct: (id: string) => void;
-  onToggleBossFight: (id: string) => void;
-  onAdjustManager: (managerId: string, delta: { coins?: number; xp?: number }) => void;
-  onResetAll: () => void;
-  onResetManager: (id: string) => void;
-  onResetAllManagers: () => void;
-  onResetAllStock: () => void;
-  onResetAllBossFights: () => void;
-  onResetAchievements: () => void;
   logout: () => void;
 }
 
 /**
- * Dedicated backend-style control room for ROP/Admin accounts. Deliberately
- * has its own layout (top bar + section nav instead of the manager sidebar)
- * so it reads as a distinct system, not just another tab in the manager app.
- * Managers never see this shell at all — routing happens in App.tsx based
- * on account role.
+ * Dedicated backend-style control room for ROP/Admin accounts. Fetches and
+ * mutates all its own data via useAdminState (real backend API) — managers
+ * never see this shell at all, App.tsx routes purely by account role.
  */
-export function AdminApp({
-  managerName,
-  products,
-  focusProducts,
-  bossFights,
-  managers,
-  onCreateFocusProduct,
-  onBulkImport,
-  onRemoveFocusProduct,
-  onToggleBossFight,
-  onAdjustManager,
-  onResetAll,
-  onResetManager,
-  onResetAllManagers,
-  onResetAllStock,
-  onResetAllBossFights,
-  onResetAchievements,
-  logout,
-}: AdminAppProps) {
+export function AdminApp({ managerName, logout }: AdminAppProps) {
   const { t } = useLanguage();
+  const { toasts, pushToast } = useToasts();
+  const admin = useAdminState({ pushToast });
   const [section, setSection] = useState<AdminSection>("overview");
 
-  const totalStock = products.reduce((a, p) => a + p.stock, 0);
-  const activeBossFights = bossFights.filter((b) => b.active).length;
+  const totalStock = admin.inventory.reduce((a, r) => a + r.stock, 0);
+  const activeBossFights = admin.bossFights.filter((b) => b.active).length;
 
-  const SECTIONS: { id: AdminSection; label: string; icon: typeof LayoutDashboard }[] = [
+  const SECTIONS: { id: AdminSection; label: string; icon: typeof LayoutDashboard; badge?: number }[] = [
     { id: "overview", label: t("adminNavOverview"), icon: LayoutDashboard },
+    { id: "pending", label: t("adminNavPending"), icon: Clock, badge: admin.pendingAccounts.length },
     { id: "products", label: t("adminNavProducts"), icon: Package },
     { id: "bossfights", label: t("adminNavBossFights"), icon: Skull },
     { id: "managers", label: t("adminNavManagers"), icon: Users },
@@ -87,8 +45,8 @@ export function AdminApp({
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-950 text-slate-100">
       <BgDecor />
+      <ToastStack toasts={toasts} />
 
-      {/* Distinct top bar — amber/rose "control room" accent instead of the manager app's cyan */}
       <div className="sticky top-0 z-30 border-b border-white/[0.06] bg-slate-950/90 px-5 py-3.5 backdrop-blur-md lg:px-8">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
@@ -118,71 +76,83 @@ export function AdminApp({
           <p className="mt-1 text-sm text-slate-500">{t("adminPanelSubtitle")}</p>
         </div>
 
-        {/* Section nav — pill row, distinct from the manager sidebar */}
         <div className="mb-6 flex flex-wrap gap-2">
           {SECTIONS.map((s) => (
             <button
               key={s.id}
               onClick={() => setSection(s.id)}
-              className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold transition-all ${
+              className={`relative flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold transition-all ${
                 section === s.id
                   ? "border-amber-400/60 bg-amber-400/10 text-amber-300"
                   : "border-white/10 bg-white/[0.02] text-slate-400 hover:text-slate-200"
               }`}
             >
               <s.icon className="h-3.5 w-3.5" /> {s.label}
+              {!!s.badge && (
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[10px] font-black text-white">
+                  {s.badge}
+                </span>
+              )}
             </button>
           ))}
         </div>
 
         {section === "overview" && (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <StatCard icon={Users} label={t("totalManagers")} value={managers.length} color="#22D3EE" />
-            <StatCard icon={Package} label={t("totalProducts")} value={focusProducts.length} color="#A78BFA" />
+            <StatCard icon={Users} label={t("totalManagers")} value={admin.approvedAccounts.length} color="#22D3EE" />
+            <StatCard icon={Package} label={t("totalProducts")} value={admin.inventory.length} color="#A78BFA" />
             <StatCard icon={TrendingUp} label={t("totalStockValue")} value={totalStock.toLocaleString()} color="#34D399" />
             <StatCard icon={Skull} label={t("activeBossFightsCount")} value={activeBossFights} color="#FB7185" />
           </div>
         )}
 
+        {section === "pending" && (
+          <PendingApprovalsPanel
+            pending={admin.pendingAccounts}
+            onApprove={admin.approveAccount}
+            onReject={admin.rejectAccount}
+          />
+        )}
+
         {section === "products" && (
           <AdminPanel
-            products={products}
-            focusProducts={focusProducts}
-            bossFights={bossFights}
-            onCreateFocusProduct={onCreateFocusProduct}
-            onBulkImport={onBulkImport}
-            onRemoveFocusProduct={onRemoveFocusProduct}
-            onToggleBossFight={onToggleBossFight}
+            inventory={admin.inventory}
+            bossFights={admin.bossFights}
+            onCreateFocusProduct={admin.addFocusProduct}
+            onBulkImport={admin.bulkImportProducts}
+            onRemoveFocusProduct={admin.removeFocusProduct}
+            onToggleBossFight={admin.toggleBossFight}
             hideBossFights
           />
         )}
 
         {section === "bossfights" && (
           <AdminPanel
-            products={products}
-            focusProducts={focusProducts}
-            bossFights={bossFights}
-            onCreateFocusProduct={onCreateFocusProduct}
-            onBulkImport={onBulkImport}
-            onRemoveFocusProduct={onRemoveFocusProduct}
-            onToggleBossFight={onToggleBossFight}
+            inventory={admin.inventory}
+            bossFights={admin.bossFights}
+            onCreateFocusProduct={admin.addFocusProduct}
+            onBulkImport={admin.bulkImportProducts}
+            onRemoveFocusProduct={admin.removeFocusProduct}
+            onToggleBossFight={admin.toggleBossFight}
             onlyBossFights
           />
         )}
 
-        {section === "managers" && <ManagersPanel managers={managers} onAdjust={onAdjustManager} />}
+        {section === "managers" && (
+          <ManagersPanel managers={admin.approvedAccounts} onAdjust={admin.adjustManager} onChangeRole={admin.changeRole} />
+        )}
 
         {section === "reset" && (
           <ResetPanel
-            managers={managers}
-            products={products}
-            bossFights={bossFights}
-            onResetAll={onResetAll}
-            onResetManager={onResetManager}
-            onResetAllManagers={onResetAllManagers}
-            onResetAllStock={onResetAllStock}
-            onResetAllBossFights={onResetAllBossFights}
-            onResetAchievements={onResetAchievements}
+            managers={admin.approvedAccounts}
+            inventory={admin.inventory}
+            bossFights={admin.bossFights}
+            onResetAll={admin.resetEverything}
+            onResetManager={admin.resetManagerProgress}
+            onResetAllManagers={admin.resetAllManagersProgress}
+            onResetAllStock={admin.resetAllStock}
+            onResetAllBossFights={admin.resetAllBossFights}
+            onResetAchievements={admin.resetAchievements}
           />
         )}
       </div>

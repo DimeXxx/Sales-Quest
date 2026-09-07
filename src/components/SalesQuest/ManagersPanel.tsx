@@ -8,9 +8,10 @@ import { useLanguage } from "../../i18n/LanguageContext";
 interface ManagersPanelProps {
   managers: Manager[];
   onAdjust: (managerId: string, delta: { coins?: number; xp?: number }) => void;
+  onChangeRole?: (managerId: string, role: "manager" | "rop") => void;
 }
 
-export function ManagersPanel({ managers, onAdjust }: ManagersPanelProps) {
+export function ManagersPanel({ managers, onAdjust, onChangeRole }: ManagersPanelProps) {
   const { t } = useLanguage();
   const [drafts, setDrafts] = useState<Record<string, { coins: string; xp: string }>>({});
 
@@ -76,6 +77,16 @@ export function ManagersPanel({ managers, onAdjust }: ManagersPanelProps) {
                 <Button size="sm" variant="secondary" onClick={() => apply(m.id)}>
                   {t("apply")}
                 </Button>
+                {onChangeRole && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => onChangeRole(m.id, m.role === "rop" ? "manager" : "rop")}
+                    title={m.role === "rop" ? "Demote to manager" : "Promote to ROP"}
+                  >
+                    {m.role === "rop" ? "→ Manager" : "→ ROP"}
+                  </Button>
+                )}
               </div>
             </Card>
           );

@@ -14,8 +14,6 @@ interface FocusProductFormProps {
     description: string;
     price: number;
     stock: number;
-    stockAgeDays: number;
-    marginPercent: number;
     priority: Priority;
     xpReward: number;
     coinReward: number;
@@ -59,8 +57,6 @@ export function FocusProductForm({ onCreate }: FocusProductFormProps) {
       description: form.description || t("addFocusProduct"),
       price: Number(form.price) || 0,
       stock,
-      stockAgeDays,
-      marginPercent,
       priority: form.priority,
       xpReward,
       coinReward,

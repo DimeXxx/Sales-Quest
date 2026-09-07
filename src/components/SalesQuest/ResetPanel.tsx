@@ -1,5 +1,6 @@
 import { RotateCcw, Skull, Trophy, Users } from "lucide-react";
-import type { BossFight, Manager, Product } from "../../types/sales";
+import type { BossFight, Manager } from "../../types/sales";
+import type { InventoryRow } from "../../hooks/useAdminState";
 import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
 import { ConfirmButton } from "../ui/ConfirmButton";
@@ -7,7 +8,7 @@ import { useLanguage } from "../../i18n/LanguageContext";
 
 interface ResetPanelProps {
   managers: Manager[];
-  products: Product[];
+  inventory: InventoryRow[];
   bossFights: BossFight[];
   onResetAll: () => void;
   onResetManager: (id: string) => void;
@@ -19,7 +20,7 @@ interface ResetPanelProps {
 
 export function ResetPanel({
   managers,
-  products,
+  inventory,
   bossFights,
   onResetAll,
   onResetManager,
@@ -29,7 +30,7 @@ export function ResetPanel({
   onResetAchievements,
 }: ResetPanelProps) {
   const { t } = useLanguage();
-  const clearedTotal = products.reduce((a, p) => a + (p.initialStock - p.stock), 0);
+  const clearedTotal = inventory.reduce((a, r) => a + (r.initialStock - r.stock), 0);
 
   return (
     <div className="space-y-6">

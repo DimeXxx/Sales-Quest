@@ -1,7 +1,8 @@
 import { Skull, Sparkles } from "lucide-react";
 import { useLanguage } from "../../i18n/LanguageContext";
-import type { BossFight, FocusProduct, Priority, Product } from "../../types/sales";
+import type { BossFight, Priority } from "../../types/sales";
 import type { ParsedProductRow } from "../../lib/excelImport";
+import type { InventoryRow } from "../../hooks/useAdminState";
 import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
 import { Progress } from "../ui/Progress";
@@ -10,8 +11,7 @@ import { InventoryTable } from "./InventoryTable";
 import { ExcelImportPanel } from "./ExcelImportPanel";
 
 interface AdminPanelProps {
-  products: Product[];
-  focusProducts: FocusProduct[];
+  inventory: InventoryRow[];
   bossFights: BossFight[];
   onCreateFocusProduct: (input: {
     name: string;
@@ -20,8 +20,6 @@ interface AdminPanelProps {
     description: string;
     price: number;
     stock: number;
-    stockAgeDays: number;
-    marginPercent: number;
     priority: Priority;
     xpReward: number;
     coinReward: number;
@@ -36,8 +34,7 @@ interface AdminPanelProps {
 }
 
 export function AdminPanel({
-  products,
-  focusProducts,
+  inventory,
   bossFights,
   onCreateFocusProduct,
   onBulkImport,
@@ -47,9 +44,6 @@ export function AdminPanel({
   onlyBossFights = false,
 }: AdminPanelProps) {
   const { t } = useLanguage();
-  const rows = focusProducts
-    .map((fp) => ({ focusProduct: fp, product: products.find((p) => p.id === fp.productId)! }))
-    .filter((r) => r.product);
 
   return (
     <div className="space-y-6">
@@ -57,7 +51,7 @@ export function AdminPanel({
         <div className="grid gap-5 lg:grid-cols-5">
           <div className="lg:col-span-3">
             <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-400">{t("inventory")}</h2>
-            <InventoryTable rows={rows} onRemove={onRemoveFocusProduct} />
+            <InventoryTable rows={inventory} onRemove={onRemoveFocusProduct} />
           </div>
           <div className="space-y-5 lg:col-span-2">
             <ExcelImportPanel onImport={onBulkImport} />

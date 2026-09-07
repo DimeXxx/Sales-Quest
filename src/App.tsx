@@ -1,66 +1,56 @@
-import { useEffect, useState } from "react";
-import { LogOut } from "lucide-react";
+import { useState } from "react";
+import { LogOut, Zap } from "lucide-react";
 import { useToasts } from "./hooks/useToasts";
 import { useGameState } from "./hooks/useGameState";
 import { useAuth } from "./auth/AuthContext";
-import { initials } from "./auth/accounts";
 import { useLanguage } from "./i18n/LanguageContext";
 import { ToastStack } from "./components/ui/Toast";
 import { BgDecor } from "./components/ui/BgDecor";
 import { LanguageSwitcher } from "./components/ui/LanguageSwitcher";
 import { LoginScreen } from "./components/auth/LoginScreen";
+import { PendingApprovalScreen } from "./components/auth/PendingApprovalScreen";
 import { SideNav, BottomNav, type TabId } from "./components/SalesQuest/NavBar";
 import { QuestsTab } from "./components/SalesQuest/QuestsTab";
 import { ArenaTab } from "./components/SalesQuest/ArenaTab";
 import { AdminApp } from "./components/SalesQuest/AdminApp";
 
 export default function App() {
-  const { account, isAuthenticated, logout } = useAuth();
+  const { account, isAuthenticated, isLoading, logout } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-950">
+        <Zap className="h-8 w-8 animate-pulse text-cyan-400" />
+      </div>
+    );
+  }
 
   if (!isAuthenticated || !account) {
     return <LoginScreen />;
   }
 
-  // Role-based routing: ROP/admin accounts never see the manager frontend —
-  // they land straight in the separate AdminApp control room. Managers never
-  // see the admin surface at all (no nav item, no route). This is a client-
-  // side gate for the internal pilot; a production rollout should also
-  // enforce this server-side once a real backend exists (see README).
-  if (account.role === "rop" || account.role === "admin") {
-    return <RoutedAdminApp accountManagerId={account.managerId} accountName={account.name} accountRole={account.role} logout={logout} />;
+  if (account.status === "pending") {
+    return <PendingApprovalScreen />;
   }
 
-  return <ManagerApp accountManagerId={account.managerId} accountName={account.name} accountRole={account.role} logout={logout} />;
+  // Role-based routing: ROP/admin accounts land in the separate AdminApp
+  // control room; managers only ever see the Quests/Arena frontend. This is
+  // enforced server-side too (see server/auth.js requireRole) — the client
+  // routing here is just UX, not the security boundary.
+  if (account.role === "rop" || account.role === "admin") {
+    return <AdminApp managerName={account.name} logout={logout} />;
+  }
+
+  return <ManagerApp accountName={account.name} logout={logout} />;
 }
 
-interface AppProps {
-  accountManagerId: string;
-  accountName: string;
-  accountRole: "manager" | "rop" | "admin";
-  logout: () => void;
-}
-
-function useEnsureManagerProfile(accountManagerId: string, accountName: string, accountRole: AppProps["accountRole"], game: ReturnType<typeof useGameState>) {
-  // If this is a freshly registered account, its manager profile won't exist
-  // in the game state's seed data yet — create it once, on first render.
-  useEffect(() => {
-    const exists = game.managers.some((m) => m.id === accountManagerId);
-    if (!exists) {
-      game.addManager({ id: accountManagerId, name: accountName, avatar: initials(accountName), role: accountRole });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accountManagerId]);
-}
-
-/** Manager-facing frontend: Quests + Arena only. */
-function ManagerApp({ accountManagerId, accountName, accountRole, logout }: AppProps) {
+function ManagerApp({ accountName, logout }: { accountName: string; logout: () => void }) {
   const [tab, setTab] = useState<TabId>("quests");
   const { toasts, pushToast } = useToasts();
   const { t } = useLanguage();
-  const game = useGameState({ pushToast, currentUserId: accountManagerId });
-  useEnsureManagerProfile(accountManagerId, accountName, accountRole, game);
+  const game = useGameState({ pushToast });
 
-  const rank = game.leaderboard.findIndex((m) => m.id === game.currentManager.id) + 1;
+  const rank = game.leaderboard.findIndex((m) => m.id === game.currentManager?.id) + 1;
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-950 text-slate-100">
@@ -73,6 +63,7 @@ function ManagerApp({ accountManagerId, accountName, accountRole, logout }: AppP
         <main className="min-h-screen flex-1 pb-20 lg:pb-0">
           <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
             <div className="mb-4 flex items-center justify-end gap-3">
+              <span className="text-xs text-slate-500">{accountName}</span>
               <LanguageSwitcher />
               <button
                 onClick={logout}
@@ -82,7 +73,7 @@ function ManagerApp({ accountManagerId, accountName, accountRole, logout }: AppP
               </button>
             </div>
 
-            {tab === "quests" && (
+            {tab === "quests" && game.currentManager && (
               <QuestsTab
                 manager={game.currentManager}
                 rank={rank || game.leaderboard.length}
@@ -94,7 +85,7 @@ function ManagerApp({ accountManagerId, accountName, accountRole, logout }: AppP
               />
             )}
 
-            {tab === "arena" && (
+            {tab === "arena" && game.currentManager && (
               <ArenaTab
                 managers={game.leaderboard}
                 rewards={game.rewards}
@@ -109,34 +100,5 @@ function ManagerApp({ accountManagerId, accountName, accountRole, logout }: AppP
 
       <BottomNav active={tab} onChange={setTab} />
     </div>
-  );
-}
-
-/** Separate admin/backend control room — entirely different shell, no manager tabs at all. */
-function RoutedAdminApp({ accountManagerId, accountName, accountRole, logout }: AppProps) {
-  const { pushToast } = useToasts();
-  const game = useGameState({ pushToast, currentUserId: accountManagerId });
-  useEnsureManagerProfile(accountManagerId, accountName, accountRole, game);
-
-  return (
-    <AdminApp
-      managerName={accountName}
-      products={game.products}
-      focusProducts={game.focusProducts}
-      bossFights={game.bossFights}
-      managers={game.managers}
-      onCreateFocusProduct={game.addFocusProduct}
-      onBulkImport={game.bulkImportProducts}
-      onRemoveFocusProduct={game.removeFocusProduct}
-      onToggleBossFight={game.toggleBossFight}
-      onAdjustManager={game.adjustManager}
-      onResetAll={game.resetEverything}
-      onResetManager={game.resetManagerProgress}
-      onResetAllManagers={game.resetAllManagersProgress}
-      onResetAllStock={game.resetAllStock}
-      onResetAllBossFights={game.resetAllBossFights}
-      onResetAchievements={game.resetAchievements}
-      logout={logout}
-    />
   );
 }

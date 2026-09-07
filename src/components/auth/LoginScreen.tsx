@@ -1,13 +1,11 @@
 import { useState } from "react";
 import { LogIn, UserPlus, Zap } from "lucide-react";
 import { useAuth } from "../../auth/AuthContext";
-import { getDemoAccounts } from "../../auth/accounts";
 import { useLanguage } from "../../i18n/LanguageContext";
 import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
 import { LanguageSwitcher } from "../ui/LanguageSwitcher";
 import { BgDecor } from "../ui/BgDecor";
-import type { UserRole } from "../../types/sales";
 
 export function LoginScreen() {
   const { login, register } = useAuth();
@@ -16,12 +14,10 @@ export function LoginScreen() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<UserRole>("manager");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const demoAccounts = getDemoAccounts();
-
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -30,15 +26,19 @@ export function LoginScreen() {
         setError(t("fillAllFields"));
         return;
       }
-      const ok = login(email, password);
-      if (!ok) setError(t("invalidCredentials"));
+      setSubmitting(true);
+      const result = await login(email, password);
+      setSubmitting(false);
+      if (!result.ok) setError(t("invalidCredentials"));
     } else {
       if (!name || !email || !password) {
         setError(t("fillAllFields"));
         return;
       }
-      const result = register(name, email, password, role);
-      if (!result.ok) setError(t(result.error as "emailTaken"));
+      setSubmitting(true);
+      const result = await register(name, email, password);
+      setSubmitting(false);
+      if (!result.ok) setError(result.error === "email_taken" ? t("emailTaken") : t("fillAllFields"));
     }
   };
 
@@ -86,28 +86,10 @@ export function LoginScreen() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          {mode === "register" && (
-            <div className="flex gap-2">
-              {(["manager", "rop"] as const).map((r) => (
-                <button
-                  type="button"
-                  key={r}
-                  onClick={() => setRole(r)}
-                  className={`flex-1 rounded-xl border px-3 py-2 text-xs font-semibold transition-all ${
-                    role === r
-                      ? "border-cyan-400/50 bg-cyan-400/10 text-cyan-300"
-                      : "border-white/10 bg-white/[0.02] text-slate-500"
-                  }`}
-                >
-                  {r === "manager" ? t("roleManager") : t("roleRop")}
-                </button>
-              ))}
-            </div>
-          )}
 
           {error && <p className="text-xs font-semibold text-rose-400">{error}</p>}
 
-          <Button type="submit" className="w-full">
+          <Button type="submit" disabled={submitting} className="w-full">
             {mode === "login" ? (
               <>
                 <LogIn className="h-4 w-4" /> {t("loginButton")}
@@ -132,25 +114,12 @@ export function LoginScreen() {
 
         {mode === "login" && (
           <div className="mt-5 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
-              {t("demoAccountsHint")}
-            </p>
-            <div className="space-y-0.5">
-              {demoAccounts.slice(0, 4).map((a) => (
-                <button
-                  key={a.email}
-                  type="button"
-                  onClick={() => {
-                    setEmail(a.email);
-                    setPassword("demo123");
-                  }}
-                  className="block w-full truncate rounded-md px-1.5 py-0.5 text-left text-[11px] text-slate-500 hover:bg-white/[0.04] hover:text-cyan-300"
-                >
-                  {a.name} — {a.email}
-                </button>
-              ))}
-            </div>
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-600">{t("demoAccountsHint")}</p>
+            <p className="mt-1 text-[11px] text-slate-500">alexei@qgroup.demo · dmitri@qgroup.demo · olga@qgroup.demo (РОП)</p>
           </div>
+        )}
+        {mode === "register" && (
+          <p className="mt-4 text-center text-[11px] text-slate-600">{t("pendingHint")}</p>
         )}
       </Card>
     </div>
