@@ -1,6 +1,6 @@
 const express = require("express");
 const crypto = require("node:crypto");
-const db = require("../db");
+const { state, save } = require("../db");
 const { requireAuth, requireRole } = require("../auth");
 const { toPublicAccount } = require("./auth");
 
@@ -9,51 +9,71 @@ router.use(requireAuth, requireRole("rop", "admin"));
 
 // ---- pending account approvals -------------------------------------------
 router.get("/accounts", (_req, res) => {
-  const rows = db.prepare(`
-    SELECT id, name, email, role, status, avatar, level, xp, coins, quests_completed AS questsCompleted, streak
-    FROM accounts ORDER BY status ASC, name ASC
-  `).all();
-  res.json({ accounts: rows });
+  const accounts = [...state.accounts]
+    .sort((a, b) => (a.status === b.status ? a.name.localeCompare(b.name) : a.status === "pending" ? -1 : 1))
+    .map(toPublicAccount);
+  res.json({ accounts });
 });
 
 router.post("/accounts/:id/approve", (req, res) => {
-  const info = db.prepare("UPDATE accounts SET status = 'approved' WHERE id = ?").run(req.params.id);
-  if (info.changes === 0) return res.status(404).json({ error: "not_found" });
+  const account = state.accounts.find((a) => a.id === req.params.id);
+  if (!account) return res.status(404).json({ error: "not_found" });
+  account.status = "approved";
+  save();
   res.status(204).end();
 });
 
 router.post("/accounts/:id/reject", (req, res) => {
-  // A rejected pending signup is simply removed — approved accounts can't be rejected this way.
-  const info = db.prepare("DELETE FROM accounts WHERE id = ? AND status = 'pending'").run(req.params.id);
-  if (info.changes === 0) return res.status(404).json({ error: "not_found" });
+  const idx = state.accounts.findIndex((a) => a.id === req.params.id && a.status === "pending");
+  if (idx === -1) return res.status(404).json({ error: "not_found" });
+  state.accounts.splice(idx, 1);
+  save();
   res.status(204).end();
 });
 
 router.post("/accounts/:id/role", (req, res) => {
   const { role } = req.body || {};
   if (!["manager", "rop"].includes(role)) return res.status(400).json({ error: "invalid_role" });
-  db.prepare("UPDATE accounts SET role = ? WHERE id = ?").run(role, req.params.id);
+  const account = state.accounts.find((a) => a.id === req.params.id);
+  if (!account) return res.status(404).json({ error: "not_found" });
+  account.role = role;
+  save();
   res.status(204).end();
 });
 
 router.post("/accounts/:id/adjust", (req, res) => {
   const { coins = 0, xp = 0 } = req.body || {};
-  const account = db.prepare("SELECT * FROM accounts WHERE id = ?").get(req.params.id);
+  const account = state.accounts.find((a) => a.id === req.params.id);
   if (!account) return res.status(404).json({ error: "not_found" });
-  const newXp = Math.max(0, account.xp + Number(xp));
-  const newCoins = Math.max(0, account.coins + Number(coins));
-  const newLevel = Math.floor(newXp / 1000) + 1;
-  db.prepare("UPDATE accounts SET xp = ?, coins = ?, level = ? WHERE id = ?").run(newXp, newCoins, newLevel, account.id);
-  res.json({ account: toPublicAccount(db.prepare("SELECT * FROM accounts WHERE id = ?").get(account.id)) });
+  account.xp = Math.max(0, account.xp + Number(xp));
+  account.coins = Math.max(0, account.coins + Number(coins));
+  account.level = Math.floor(account.xp / 1000) + 1;
+  save();
+  res.json({ account: toPublicAccount(account) });
 });
 
 // ---- inventory / focus products -------------------------------------------
 router.get("/inventory", (_req, res) => {
-  const rows = db.prepare(`
-    SELECT fp.id AS focusProductId, fp.priority, fp.xp_reward AS xpReward, fp.coin_reward AS coinReward,
-           p.id AS productId, p.name, p.sku, p.category, p.price, p.stock, p.initial_stock AS initialStock, p.image_url AS imageUrl
-    FROM focus_products fp JOIN products p ON p.id = fp.product_id
-  `).all();
+  const rows = state.focusProducts
+    .map((fp) => {
+      const p = state.products.find((prod) => prod.id === fp.productId);
+      if (!p) return null;
+      return {
+        focusProductId: fp.id,
+        priority: fp.priority,
+        xpReward: fp.xpReward,
+        coinReward: fp.coinReward,
+        productId: p.id,
+        name: p.name,
+        sku: p.sku,
+        category: p.category,
+        price: p.price,
+        stock: p.stock,
+        initialStock: p.initialStock,
+        imageUrl: p.imageUrl,
+      };
+    })
+    .filter(Boolean);
   res.json({ rows });
 });
 
@@ -61,90 +81,125 @@ router.post("/focus-products", (req, res) => {
   const { name, sku, category, description, price, stock, priority, xpReward, coinReward, imageUrl } = req.body || {};
   if (!name || !sku || !stock) return res.status(400).json({ error: "missing_fields" });
 
-  const productId = crypto.randomUUID();
-  const focusId = crypto.randomUUID();
-  db.prepare(`
-    INSERT INTO products (id, name, sku, category, description, price, stock, initial_stock, image_url)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(productId, name, sku, category || "General", description || "", Number(price) || 0, Number(stock), Number(stock), imageUrl || null);
+  const product = {
+    id: crypto.randomUUID(),
+    name,
+    sku,
+    category: category || "General",
+    description: description || "",
+    price: Number(price) || 0,
+    stock: Number(stock),
+    initialStock: Number(stock),
+    imageUrl: imageUrl || null,
+  };
+  const focus = {
+    id: crypto.randomUUID(),
+    productId: product.id,
+    priority,
+    xpReward: Number(xpReward) || 0,
+    coinReward: Number(coinReward) || 0,
+    active: true,
+  };
+  state.products.push(product);
+  state.focusProducts.push(focus);
+  save();
 
-  db.prepare(`
-    INSERT INTO focus_products (id, product_id, priority, xp_reward, coin_reward, active)
-    VALUES (?, ?, ?, ?, ?, 1)
-  `).run(focusId, productId, priority, Number(xpReward) || 0, Number(coinReward) || 0);
-
-  res.status(201).json({ focusProductId: focusId, productId });
+  res.status(201).json({ focusProductId: focus.id, productId: product.id });
 });
 
 router.post("/focus-products/bulk", (req, res) => {
   const rows = req.body?.rows || [];
-  const insertProduct = db.prepare(`
-    INSERT INTO products (id, name, sku, category, description, price, stock, initial_stock, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL)
-  `);
-  const insertFocus = db.prepare(`
-    INSERT INTO focus_products (id, product_id, priority, xp_reward, coin_reward, active) VALUES (?, ?, ?, ?, ?, 1)
-  `);
-  const tx = db.transaction((items) => {
-    for (const row of items) {
-      const productId = crypto.randomUUID();
-      const focusId = crypto.randomUUID();
-      insertProduct.run(productId, row.name, row.sku, row.category || "General", row.description || "", Number(row.price) || 0, Number(row.stock), Number(row.stock));
-      // Simple priority-based reward, matching the client-side Reward Engine defaults.
-      const base = { critical: [300, 120], high: [250, 100], normal: [100, 35] }[row.priority] || [100, 35];
-      insertFocus.run(focusId, productId, row.priority, base[0], base[1]);
-    }
-  });
-  tx(rows);
+  const REWARD_BASE = { critical: [300, 120], high: [250, 100], normal: [100, 35] };
+
+  for (const row of rows) {
+    const product = {
+      id: crypto.randomUUID(),
+      name: row.name,
+      sku: row.sku,
+      category: row.category || "General",
+      description: row.description || "",
+      price: Number(row.price) || 0,
+      stock: Number(row.stock),
+      initialStock: Number(row.stock),
+      imageUrl: null,
+    };
+    const [xpReward, coinReward] = REWARD_BASE[row.priority] || REWARD_BASE.normal;
+    state.products.push(product);
+    state.focusProducts.push({
+      id: crypto.randomUUID(),
+      productId: product.id,
+      priority: row.priority,
+      xpReward,
+      coinReward,
+      active: true,
+    });
+  }
+  save();
   res.status(201).json({ imported: rows.length });
 });
 
 router.delete("/focus-products/:id", (req, res) => {
-  db.prepare("UPDATE focus_products SET active = 0 WHERE id = ?").run(req.params.id);
+  const fp = state.focusProducts.find((f) => f.id === req.params.id);
+  if (fp) fp.active = false;
+  save();
   res.status(204).end();
 });
 
 // ---- boss fights -----------------------------------------------------------
 router.post("/boss-fights/:id/toggle", (req, res) => {
-  const bf = db.prepare("SELECT active FROM boss_fights WHERE id = ?").get(req.params.id);
+  const bf = state.bossFights.find((b) => b.id === req.params.id);
   if (!bf) return res.status(404).json({ error: "not_found" });
-  db.prepare("UPDATE boss_fights SET active = ? WHERE id = ?").run(bf.active ? 0 : 1, req.params.id);
+  bf.active = !bf.active;
+  save();
   res.status(204).end();
 });
 
 // ---- resets ------------------------------------------------------------
+function resetManagerFields(a) {
+  a.level = 1;
+  a.xp = 0;
+  a.coins = 0;
+  a.questsCompleted = 0;
+  a.streak = 0;
+}
+
 router.post("/reset/manager/:id", (req, res) => {
-  db.prepare("UPDATE accounts SET level = 1, xp = 0, coins = 0, quests_completed = 0, streak = 0 WHERE id = ?").run(req.params.id);
+  const account = state.accounts.find((a) => a.id === req.params.id);
+  if (account) resetManagerFields(account);
+  save();
   res.status(204).end();
 });
 
 router.post("/reset/managers", (_req, res) => {
-  db.prepare("UPDATE accounts SET level = 1, xp = 0, coins = 0, quests_completed = 0, streak = 0 WHERE role != 'rop' AND role != 'admin'").run();
+  state.accounts.filter((a) => a.role !== "rop" && a.role !== "admin").forEach(resetManagerFields);
+  save();
   res.status(204).end();
 });
 
 router.post("/reset/stock", (_req, res) => {
-  db.prepare("UPDATE products SET stock = initial_stock").run();
+  state.products.forEach((p) => { p.stock = p.initialStock; });
+  save();
   res.status(204).end();
 });
 
 router.post("/reset/boss-fights", (_req, res) => {
-  db.prepare("UPDATE boss_fights SET current_quantity = 0").run();
+  state.bossFights.forEach((bf) => { bf.currentQuantity = 0; });
+  save();
   res.status(204).end();
 });
 
 router.post("/reset/achievements", (_req, res) => {
-  db.prepare("DELETE FROM account_achievements").run();
+  state.accountAchievements = [];
+  save();
   res.status(204).end();
 });
 
 router.post("/reset/all", (_req, res) => {
-  const tx = db.transaction(() => {
-    db.prepare("UPDATE accounts SET level = 1, xp = 0, coins = 0, quests_completed = 0, streak = 0 WHERE role != 'rop' AND role != 'admin'").run();
-    db.prepare("UPDATE products SET stock = initial_stock").run();
-    db.prepare("UPDATE boss_fights SET current_quantity = 0").run();
-    db.prepare("DELETE FROM account_achievements").run();
-  });
-  tx();
+  state.accounts.filter((a) => a.role !== "rop" && a.role !== "admin").forEach(resetManagerFields);
+  state.products.forEach((p) => { p.stock = p.initialStock; });
+  state.bossFights.forEach((bf) => { bf.currentQuantity = 0; });
+  state.accountAchievements = [];
+  save();
   res.status(204).end();
 });
 

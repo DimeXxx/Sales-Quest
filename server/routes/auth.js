@@ -1,23 +1,23 @@
 const express = require("express");
 const crypto = require("node:crypto");
-const db = require("../db");
+const { state, save } = require("../db");
 const { hashPassword, verifyPassword, signSession, setSessionCookie, clearSessionCookie, requireAuth } = require("../auth");
 
 const router = express.Router();
 
-function toPublicAccount(row) {
+function toPublicAccount(a) {
   return {
-    id: row.id,
-    name: row.name,
-    email: row.email,
-    role: row.role,
-    status: row.status,
-    avatar: row.avatar,
-    level: row.level,
-    xp: row.xp,
-    coins: row.coins,
-    questsCompleted: row.quests_completed,
-    streak: row.streak,
+    id: a.id,
+    name: a.name,
+    email: a.email,
+    role: a.role,
+    status: a.status,
+    avatar: a.avatar,
+    level: a.level,
+    xp: a.xp,
+    coins: a.coins,
+    questsCompleted: a.questsCompleted,
+    streak: a.streak,
   };
 }
 
@@ -32,18 +32,29 @@ router.post("/register", (req, res) => {
   }
   const normalizedEmail = String(email).trim().toLowerCase();
 
-  const existing = db.prepare("SELECT id FROM accounts WHERE email = ?").get(normalizedEmail);
-  if (existing) return res.status(409).json({ error: "email_taken" });
+  if (state.accounts.some((a) => a.email === normalizedEmail)) {
+    return res.status(409).json({ error: "email_taken" });
+  }
 
-  const id = crypto.randomUUID();
   // Role is always "manager" — self-registration can never grant ROP/admin
   // access. Promoting someone to ROP is an admin-only action.
-  db.prepare(`
-    INSERT INTO accounts (id, name, email, password_hash, role, status, avatar, level, xp, coins, quests_completed, streak)
-    VALUES (?, ?, ?, ?, 'manager', 'pending', ?, 1, 0, 0, 0, 0)
-  `).run(id, name, normalizedEmail, hashPassword(password), initials(name));
+  const account = {
+    id: crypto.randomUUID(),
+    name,
+    email: normalizedEmail,
+    passwordHash: hashPassword(password),
+    role: "manager",
+    status: "pending",
+    avatar: initials(name),
+    level: 1,
+    xp: 0,
+    coins: 0,
+    questsCompleted: 0,
+    streak: 0,
+  };
+  state.accounts.push(account);
+  save();
 
-  const account = db.prepare("SELECT * FROM accounts WHERE id = ?").get(id);
   const token = signSession(account);
   setSessionCookie(res, token);
   res.status(201).json({ account: toPublicAccount(account) });
@@ -54,8 +65,8 @@ router.post("/login", (req, res) => {
   if (!email || !password) return res.status(400).json({ error: "missing_fields" });
 
   const normalizedEmail = String(email).trim().toLowerCase();
-  const account = db.prepare("SELECT * FROM accounts WHERE email = ?").get(normalizedEmail);
-  if (!account || !verifyPassword(password, account.password_hash)) {
+  const account = state.accounts.find((a) => a.email === normalizedEmail);
+  if (!account || !verifyPassword(password, account.passwordHash)) {
     return res.status(401).json({ error: "invalid_credentials" });
   }
 
@@ -70,7 +81,7 @@ router.post("/logout", (_req, res) => {
 });
 
 router.get("/me", requireAuth, (req, res) => {
-  const account = db.prepare("SELECT * FROM accounts WHERE id = ?").get(req.auth.id);
+  const account = state.accounts.find((a) => a.id === req.auth.id);
   if (!account) return res.status(401).json({ error: "not_found" });
   res.json({ account: toPublicAccount(account) });
 });
