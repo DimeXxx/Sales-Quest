@@ -11,16 +11,16 @@ import type {
 // PRODUCTS — realistic B2B security / IT distribution catalogue
 // ---------------------------------------------------------------------------
 export const PRODUCTS: Product[] = [
-  { id: "p1", name: "Seagate Skyhawk HDD 8TB", sku: "ST8000VX010", category: "Storage", description: "Жёсткий диск для видеонаблюдения 24/7, оптимизирован под NVR-нагрузку.", price: 189, stock: 120, initialStock: 200, stockAgeDays: 182, marginPercent: 9 },
-  { id: "p2", name: "Hikvision DS-2CD2143G2-I", sku: "IPC-2143G2", category: "IP Camera", description: "4MP купольная IP-камера с ИК-подсветкой до 30м и AcuSense-детекцией.", price: 96, stock: 37, initialStock: 80, stockAgeDays: 64, marginPercent: 18 },
-  { id: "p3", name: "Hikvision DS-7616NI-K2 NVR", sku: "NVR-7616K2", category: "NVR", description: "16-канальный сетевой видеорегистратор с поддержкой 4K вывода.", price: 340, stock: 12, initialStock: 40, stockAgeDays: 41, marginPercent: 27 },
+  { id: "p1", name: "Seagate Skyhawk HDD 8TB", sku: "ST8000VX010", category: "Storage", description: "Жёсткий диск для видеонаблюдения 24/7, оптимизирован под NVR-нагрузку.", price: 189, stock: 200, initialStock: 200, stockAgeDays: 182, marginPercent: 9 },
+  { id: "p2", name: "Hikvision DS-2CD2143G2-I", sku: "IPC-2143G2", category: "IP Camera", description: "4MP купольная IP-камера с ИК-подсветкой до 30м и AcuSense-детекцией.", price: 96, stock: 80, initialStock: 80, stockAgeDays: 64, marginPercent: 18 },
+  { id: "p3", name: "Hikvision DS-7616NI-K2 NVR", sku: "NVR-7616K2", category: "NVR", description: "16-канальный сетевой видеорегистратор с поддержкой 4K вывода.", price: 340, stock: 40, initialStock: 40, stockAgeDays: 41, marginPercent: 27 },
   { id: "p4", name: "HiLook IPC-B140H", sku: "HL-B140H", category: "IP Camera", description: "Бюджетная 4MP цилиндрическая камера, ИК до 30м, EXIR-технология.", price: 54, stock: 60, initialStock: 60, stockAgeDays: 33, marginPercent: 14 },
-  { id: "p5", name: "Hikvision DS-K1T343 Access Terminal", sku: "AC-K1T343", category: "Access Control", description: "Терминал контроля доступа с распознаванием лиц и картой Mifare.", price: 410, stock: 18, initialStock: 60, stockAgeDays: 205, marginPercent: 22 },
-  { id: "p6", name: "WD Purple Surveillance HDD 4TB", sku: "WD40PURZ", category: "Storage", description: "Диск для видеонаблюдения с AllFrame AI, до 64 камер на один диск.", price: 112, stock: 95, initialStock: 150, stockAgeDays: 148, marginPercent: 8 },
-  { id: "p7", name: "Hikvision DS-2DE4425IW-DE PTZ", sku: "PTZ-4425", category: "PTZ Camera", description: "4MP PTZ-камера с 25x оптическим зумом и автослежением.", price: 780, stock: 9, initialStock: 20, stockAgeDays: 22, marginPercent: 31 },
-  { id: "p8", name: "HiLook NVR-108MH-D/8P", sku: "HL-108MHD8P", category: "NVR", description: "8-канальный NVR со встроенным PoE-коммутатором на 8 портов.", price: 165, stock: 26, initialStock: 50, stockAgeDays: 97, marginPercent: 19 },
+  { id: "p5", name: "Hikvision DS-K1T343 Access Terminal", sku: "AC-K1T343", category: "Access Control", description: "Терминал контроля доступа с распознаванием лиц и картой Mifare.", price: 410, stock: 60, initialStock: 60, stockAgeDays: 205, marginPercent: 22 },
+  { id: "p6", name: "WD Purple Surveillance HDD 4TB", sku: "WD40PURZ", category: "Storage", description: "Диск для видеонаблюдения с AllFrame AI, до 64 камер на один диск.", price: 112, stock: 150, initialStock: 150, stockAgeDays: 148, marginPercent: 8 },
+  { id: "p7", name: "Hikvision DS-2DE4425IW-DE PTZ", sku: "PTZ-4425", category: "PTZ Camera", description: "4MP PTZ-камера с 25x оптическим зумом и автослежением.", price: 780, stock: 20, initialStock: 20, stockAgeDays: 22, marginPercent: 31 },
+  { id: "p8", name: "HiLook NVR-108MH-D/8P", sku: "HL-108MHD8P", category: "NVR", description: "8-канальный NVR со встроенным PoE-коммутатором на 8 портов.", price: 165, stock: 50, initialStock: 50, stockAgeDays: 97, marginPercent: 19 },
   { id: "p9", name: "Hikvision VMS License Pack 32ch", sku: "LIC-VMS32", category: "Software", description: "Лицензия на управление видео для 32 каналов, бессрочная.", price: 520, stock: 48, initialStock: 48, stockAgeDays: 15, marginPercent: 42 },
-  { id: "p10", name: "Hikvision DS-K2604T Controller", sku: "AC-K2604T", category: "Access Control", description: "Контроллер доступа на 4 двери с поддержкой TCP/IP и RS-485.", price: 265, stock: 100, initialStock: 220, stockAgeDays: 233, marginPercent: 11 },
+  { id: "p10", name: "Hikvision DS-K2604T Controller", sku: "AC-K2604T", category: "Access Control", description: "Контроллер доступа на 4 двери с поддержкой TCP/IP и RS-485.", price: 265, stock: 220, initialStock: 220, stockAgeDays: 233, marginPercent: 11 },
 ];
 
 // ---------------------------------------------------------------------------
@@ -40,12 +40,12 @@ export const FOCUS_PRODUCTS: FocusProduct[] = [
 // MANAGERS
 // ---------------------------------------------------------------------------
 export const MANAGERS: Manager[] = [
-  { id: "m1", name: "Алексей", avatar: "АЛ", level: 6, xp: 6420, coins: 4100, questsCompleted: 41, streak: 9, role: "manager" },
-  { id: "m2", name: "Дмитрий", avatar: "ДМ", level: 4, xp: 5340, coins: 3200, questsCompleted: 28, streak: 6, role: "manager" },
-  { id: "m3", name: "Ирина", avatar: "ИР", level: 5, xp: 5990, coins: 3760, questsCompleted: 34, streak: 4, role: "manager" },
-  { id: "m4", name: "Сергей", avatar: "СЕ", level: 3, xp: 2870, coins: 1980, questsCompleted: 19, streak: 2, role: "manager" },
-  { id: "m5", name: "Андрей", avatar: "АН", level: 3, xp: 2410, coins: 1650, questsCompleted: 15, streak: 1, role: "manager" },
-  { id: "m6", name: "Ольга (РОП)", avatar: "ОР", level: 8, xp: 9100, coins: 0, questsCompleted: 0, streak: 0, role: "rop" },
+  { id: "m1", name: "Алексей", avatar: "АЛ", level: 1, xp: 0, coins: 0, questsCompleted: 0, streak: 0, role: "manager" },
+  { id: "m2", name: "Дмитрий", avatar: "ДМ", level: 1, xp: 0, coins: 0, questsCompleted: 0, streak: 0, role: "manager" },
+  { id: "m3", name: "Ирина", avatar: "ИР", level: 1, xp: 0, coins: 0, questsCompleted: 0, streak: 0, role: "manager" },
+  { id: "m4", name: "Сергей", avatar: "СЕ", level: 1, xp: 0, coins: 0, questsCompleted: 0, streak: 0, role: "manager" },
+  { id: "m5", name: "Андрей", avatar: "АН", level: 1, xp: 0, coins: 0, questsCompleted: 0, streak: 0, role: "manager" },
+  { id: "m6", name: "Ольга (РОП)", avatar: "ОР", level: 1, xp: 0, coins: 0, questsCompleted: 0, streak: 0, role: "rop" },
 ];
 
 export const CURRENT_MANAGER_ID = "m2"; // "Дмитрий" — matches the spec's demo profile
@@ -75,7 +75,7 @@ export const BOSS_FIGHTS: BossFight[] = [
     description: "Общий рывок отдела — закрываем самый залежавшийся SKU на складе.",
     targetSku: "ST8000VX010",
     targetQuantity: 100,
-    currentQuantity: 63,
+    currentQuantity: 0,
     deadline: in48h,
     reward: "🍕 Пицца для отдела",
     active: true,
@@ -86,7 +86,7 @@ export const BOSS_FIGHTS: BossFight[] = [
     description: "Совместная зачистка контроллеров DS-K2604T перед приходом новой партии.",
     targetSku: "AC-K2604T",
     targetQuantity: 80,
-    currentQuantity: 22,
+    currentQuantity: 0,
     deadline: in5d,
     reward: "🏖️ Пятница выходной для отдела",
     active: false,
@@ -97,14 +97,14 @@ export const BOSS_FIGHTS: BossFight[] = [
 // ACHIEVEMENTS
 // ---------------------------------------------------------------------------
 export const ACHIEVEMENTS: Achievement[] = [
-  { id: "a1", name: "First Blood", description: "Первая зафиксированная продажа", icon: "zap", unlocked: true },
-  { id: "a2", name: "10 Kills", description: "10 закрытых квестов", icon: "swords", unlocked: true },
-  { id: "a3", name: "Stock Hunter", description: "Продано 50 единиц фокусных товаров", icon: "crosshair", unlocked: true },
+  { id: "a1", name: "First Blood", description: "Первая зафиксированная продажа", icon: "zap", unlocked: false },
+  { id: "a2", name: "10 Kills", description: "10 закрытых квестов", icon: "swords", unlocked: false },
+  { id: "a3", name: "Stock Hunter", description: "Продано 50 единиц фокусных товаров", icon: "crosshair", unlocked: false },
   { id: "a4", name: "Weekend Warrior", description: "10 квестов за выходные", icon: "calendar", unlocked: false },
-  { id: "a5", name: "Boss Slayer", description: "Участие в Boss Fight", icon: "skull", unlocked: true },
+  { id: "a5", name: "Boss Slayer", description: "Участие в Boss Fight", icon: "skull", unlocked: false },
   { id: "a6", name: "Warehouse Destroyer", description: "Остаток критического товара снижен на 50%", icon: "warehouse", unlocked: false },
   { id: "a7", name: "Streak Master", description: "7 дней подряд с продажами", icon: "flame", unlocked: false },
-  { id: "a8", name: "Top 3 Finisher", description: "Топ-3 в рейтинге месяца", icon: "medal", unlocked: true },
+  { id: "a8", name: "Top 3 Finisher", description: "Топ-3 в рейтинге месяца", icon: "medal", unlocked: false },
   { id: "a9", name: "Coin Collector", description: "Накоплено 5000 Coins", icon: "coins", unlocked: false },
   { id: "a10", name: "Level 5", description: "Достигнут 5-й уровень", icon: "rocket", unlocked: false },
 ];
