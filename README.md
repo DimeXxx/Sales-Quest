@@ -58,18 +58,18 @@ If you use SSH instead of HTTPS, use
 ## 🚂 Deploy to Railway
 
 The repo already includes `railway.json` and `nixpacks.toml`, and a real
-Express + SQLite backend (`server/`) that serves the production build and
+Express + JSON-file backend (`server/`) that serves the production build and
 the API — Railway just needs a Node process to run, and this repo gives it
 one.
 
 **Two extra steps this app needs (do these once):**
 
 1. **Add a persistent Volume** — Settings → Volumes → New Volume, mount path
-   `/app/data`. Without this, every redeploy wipes the SQLite database
+   `/app/data`. Without this, every redeploy wipes the JSON data file
    (all accounts, sales, stock changes) because each deploy is a fresh
    container.
 2. **Set environment variables** — Settings → Variables:
-   - `DB_PATH` = `/app/data/salesquest.db` (must match the volume's mount path)
+   - `DB_PATH` = `/app/data/salesquest.json` (must match the volume's mount path)
    - `JWT_SECRET` = a long random string (`openssl rand -base64 32`)
    - `NODE_ENV` = `production`
 
@@ -97,7 +97,7 @@ railway up
 
 ## 🔐 Security notes
 
-The app now has a **real backend** (Express + SQLite) — no more localStorage
+The app now has a **real backend** (Express + plain JSON file) — no more localStorage
 accounts. Passwords are hashed with bcrypt, sessions are signed JWTs in
 httpOnly cookies, and every sale/redeem/admin action is validated server-side
 (a manager can't grant themselves coins from devtools anymore).
@@ -118,8 +118,8 @@ app until an existing ROP/admin approves them from the Admin Panel's
 ## 🗂 Project structure
 
 ```
-server/                     # Express + SQLite backend (real, not mocked)
-  db.js                      # schema + seed data, SQLite file at DB_PATH
+server/                     # Express + JSON-file backend (real, not mocked)
+  db.js                      # schema + seed data, JSON file at DB_PATH — no native deps, no compile step
   auth.js                    # bcrypt hashing, JWT sign/verify, middleware
   routes/
     auth.js                   # register, login, logout, me
