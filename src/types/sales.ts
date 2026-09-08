@@ -55,6 +55,7 @@ export interface Manager {
   level: number;
   xp: number;
   coins: number;
+  totalCashBonus: number;
   questsCompleted: number;
   streak: number;
   role: UserRole;
@@ -97,6 +98,7 @@ export interface QuestCardData {
   priority: Priority;
   xpReward: number;
   coinReward: number;
+  cashBonus: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -124,9 +126,9 @@ export interface RewardEngineOutput {
  */
 export function calculateReward(input: RewardEngineInput): RewardEngineOutput {
   const base: Record<Priority, RewardEngineOutput> = {
-    critical: { xpReward: 300, coinReward: 120 },
-    high: { xpReward: 250, coinReward: 100 },
-    normal: { xpReward: 100, coinReward: 35 },
+    critical: { xpReward: 100, coinReward: 120 },
+    high: { xpReward: 85, coinReward: 100 },
+    normal: { xpReward: 35, coinReward: 35 },
   };
   const b = base[input.priority];
   const ageBoost = input.stockAgeDays > 120 ? 1.15 : 1;

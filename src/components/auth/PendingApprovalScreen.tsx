@@ -11,7 +11,7 @@ export function PendingApprovalScreen() {
   const { t } = useLanguage();
 
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-950 px-4 text-slate-100">
+    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[#0B0F17] px-4 text-slate-100">
       <BgDecor />
       <div className="absolute right-5 top-5 z-10">
         <LanguageSwitcher />

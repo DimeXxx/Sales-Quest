@@ -19,7 +19,7 @@ export default function App() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-950">
+      <div className="flex min-h-screen w-full items-center justify-center bg-[#0B0F17]">
         <Zap className="h-8 w-8 animate-pulse text-cyan-400" />
       </div>
     );
@@ -53,7 +53,7 @@ function ManagerApp({ accountName, logout }: { accountName: string; logout: () =
   const rank = game.leaderboard.findIndex((m) => m.id === game.currentManager?.id) + 1;
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-950 text-slate-100">
+    <div className="relative min-h-screen w-full overflow-hidden bg-[#0B0F17] text-slate-100">
       <BgDecor />
       <ToastStack toasts={toasts} />
 

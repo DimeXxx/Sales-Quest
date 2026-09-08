@@ -3,6 +3,7 @@ const crypto = require("node:crypto");
 const { state, save } = require("../db");
 const { requireAuth } = require("../auth");
 const { toPublicAccount } = require("./auth");
+const { computeSaleReward } = require("../rewardEngine");
 
 const router = express.Router();
 router.use(requireAuth);
@@ -19,6 +20,7 @@ router.get("/quests", (_req, res) => {
         priority: fp.priority,
         xpReward: fp.xpReward,
         coinReward: fp.coinReward,
+        cashBonus: fp.cashBonus || 0,
         product,
       };
     })
@@ -38,15 +40,16 @@ router.post("/sales", (req, res) => {
   if (!product || product.stock <= 0) return res.status(400).json({ error: "sold_out" });
 
   const clampedQty = Math.min(qty, product.stock);
-  const xpEarned = fp.xpReward * clampedQty;
-  const coinsEarned = fp.coinReward * clampedQty;
+  const account = state.accounts.find((a) => a.id === req.auth.id);
+  const { xpEarned, coinsEarned, cashEarned, volMult, ageMult, streakMult } = computeSaleReward(fp, clampedQty, account);
 
   product.stock -= clampedQty;
+  product.soldCount = (product.soldCount || 0) + clampedQty;
 
-  const account = state.accounts.find((a) => a.id === req.auth.id);
   const prevLevel = Math.floor(account.xp / 1000) + 1;
   account.xp += xpEarned;
   account.coins += coinsEarned;
+  account.totalCashBonus = Math.round(((account.totalCashBonus || 0) + cashEarned) * 100) / 100;
   account.questsCompleted += 1;
   account.level = Math.floor(account.xp / 1000) + 1;
 
@@ -57,9 +60,11 @@ router.post("/sales", (req, res) => {
     id: crypto.randomUUID(),
     accountId: account.id,
     focusProductId,
+    productId: product.id,
     quantity: clampedQty,
     xpEarned,
     coinsEarned,
+    cashEarned,
     createdAt: new Date().toISOString(),
   });
 
@@ -68,8 +73,10 @@ router.post("/sales", (req, res) => {
   res.json({
     xpEarned,
     coinsEarned,
+    cashEarned,
     leveledUp: account.level > prevLevel,
     newLevel: account.level,
+    multipliers: { volume: volMult, age: ageMult, streak: streakMult },
     account: toPublicAccount(account),
   });
 });
@@ -125,6 +132,7 @@ router.get("/leaderboard", (_req, res) => {
       level: a.level,
       xp: a.xp,
       coins: a.coins,
+      totalCashBonus: a.totalCashBonus || 0,
       questsCompleted: a.questsCompleted,
       streak: a.streak,
     }))

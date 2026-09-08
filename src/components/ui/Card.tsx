@@ -23,7 +23,7 @@ const GLOW: Record<NonNullable<CardProps["glow"]>, string> = {
 export function Card({ children, className = "", glow = "none", interactive = false, ...rest }: CardProps) {
   return (
     <div
-      className={`rounded-2xl border border-slate-800/80 bg-slate-900/60 backdrop-blur-md shadow-xl shadow-cyan-950/10 transition-all duration-300 ${
+      className={`rounded-2xl border border-white/[0.08] bg-[#151D2A]/90 backdrop-blur-md shadow-xl shadow-cyan-950/10 transition-all duration-300 ${
         interactive ? "hover:border-cyan-500/40 hover:shadow-cyan-950/20" : ""
       } ${GLOW[glow]} ${className}`}
       {...rest}

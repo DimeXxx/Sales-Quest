@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { DollarSign, Plus } from "lucide-react";
 import type { Priority } from "../../types/sales";
 import { calculateReward } from "../../types/sales";
 import { Card } from "../ui/Card";
@@ -17,6 +17,7 @@ interface FocusProductFormProps {
     priority: Priority;
     xpReward: number;
     coinReward: number;
+    cashBonus: number;
   }) => void;
 }
 
@@ -30,6 +31,7 @@ const EMPTY = {
   priority: "normal" as Priority,
   xp: "",
   coins: "",
+  cashBonus: "",
 };
 
 export function FocusProductForm({ onCreate }: FocusProductFormProps) {
@@ -38,13 +40,7 @@ export function FocusProductForm({ onCreate }: FocusProductFormProps) {
   const [autoReward, setAutoReward] = useState(true);
 
   const stock = Number(form.stock) || 0;
-  // Stock age / margin no longer collected in the UI — the Reward Engine
-  // treats them as neutral (no age/margin boost) and reward is driven by
-  // priority alone.
-  const stockAgeDays = 0;
-  const marginPercent = 0;
-
-  const suggested = calculateReward({ stock, stockAgeDays, marginPercent, priority: form.priority });
+  const suggested = calculateReward({ stock, stockAgeDays: 0, marginPercent: 0, priority: form.priority });
   const xpReward = autoReward ? suggested.xpReward : Number(form.xp) || 0;
   const coinReward = autoReward ? suggested.coinReward : Number(form.coins) || 0;
 
@@ -60,6 +56,7 @@ export function FocusProductForm({ onCreate }: FocusProductFormProps) {
       priority: form.priority,
       xpReward,
       coinReward,
+      cashBonus: Number(form.cashBonus) || 0,
     });
     setForm(EMPTY);
   };
@@ -88,6 +85,17 @@ export function FocusProductForm({ onCreate }: FocusProductFormProps) {
           <input type="checkbox" checked={autoReward} onChange={(e) => setAutoReward(e.target.checked)} />
           {t("autoReward")}
         </label>
+        <div className="relative">
+          <DollarSign className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-emerald-400" />
+          <input
+            className={`${field} pl-7`}
+            type="number"
+            step="0.01"
+            placeholder={t("cashBonusPerUnit")}
+            value={form.cashBonus}
+            onChange={(e) => setForm((f) => ({ ...f, cashBonus: e.target.value }))}
+          />
+        </div>
       </div>
 
       {!autoReward && (
@@ -103,6 +111,7 @@ export function FocusProductForm({ onCreate }: FocusProductFormProps) {
           <span className="font-bold text-amber-300">+{coinReward} Coins</span>
         </p>
       )}
+      <p className="mt-1 text-[11px] text-slate-600">{t("cashBonusHint")}</p>
 
       <Button className="mt-4 w-full" onClick={submit}>
         <Plus className="h-4 w-4" /> {t("createQuest")}

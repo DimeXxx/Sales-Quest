@@ -9,6 +9,7 @@ export interface InventoryRow {
   priority: Priority;
   xpReward: number;
   coinReward: number;
+  cashBonus: number;
   productId: string;
   name: string;
   sku: string;
@@ -16,7 +17,27 @@ export interface InventoryRow {
   price: number;
   stock: number;
   initialStock: number;
+  soldCount: number;
   imageUrl: string | null;
+}
+
+export interface SalesReportProduct {
+  productId: string;
+  name: string;
+  sku: string;
+  category: string;
+  soldCount: number;
+  stock: number;
+  initialStock: number;
+  cashBonusPerUnit: number;
+  totalCashPaid: number;
+}
+
+export interface SalesReportManager {
+  accountId: string;
+  name: string;
+  questsCompleted: number;
+  totalCashBonus: number;
 }
 
 interface UseAdminStateArgs {
@@ -27,16 +48,22 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
   const [accounts, setAccounts] = useState<Manager[]>([]);
   const [inventory, setInventory] = useState<InventoryRow[]>([]);
   const [bossFights, setBossFights] = useState<BossFight[]>([]);
+  const [salesReport, setSalesReport] = useState<{ products: SalesReportProduct[]; managers: SalesReportManager[] }>({
+    products: [],
+    managers: [],
+  });
 
   const loadAll = useCallback(async () => {
-    const [accountsRes, inventoryRes, bossRes] = await Promise.all([
+    const [accountsRes, inventoryRes, bossRes, reportRes] = await Promise.all([
       api.get<{ accounts: Manager[] }>("/admin/accounts"),
       api.get<{ rows: InventoryRow[] }>("/admin/inventory"),
       api.get<{ bossFights: BossFight[] }>("/boss-fights"),
+      api.get<{ products: SalesReportProduct[]; managers: SalesReportManager[] }>("/admin/sales-report"),
     ]);
     setAccounts(accountsRes.accounts);
     setInventory(inventoryRes.rows);
     setBossFights(bossRes.bossFights);
+    setSalesReport(reportRes);
   }, []);
 
   useEffect(() => {
@@ -92,6 +119,7 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
       priority: Priority;
       xpReward: number;
       coinReward: number;
+      cashBonus: number;
     }) => {
       await api.post("/admin/focus-products", input);
       pushToast("Квест создан", `${input.name} теперь виден менеджерам`);
@@ -155,17 +183,27 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
     await loadAll();
   }, [loadAll, pushToast]);
 
+  const updateCashBonus = useCallback(
+    async (focusProductId: string, cashBonus: number) => {
+      await api.post(`/admin/focus-products/${focusProductId}/cash-bonus`, { cashBonus });
+      await loadAll();
+    },
+    [loadAll]
+  );
+
   return {
     accounts,
     pendingAccounts,
     approvedAccounts,
     inventory,
     bossFights,
+    salesReport,
     approveAccount,
     rejectAccount,
     adjustManager,
     changeRole,
     addFocusProduct,
+    updateCashBonus,
     bulkImportProducts,
     removeFocusProduct,
     toggleBossFight,

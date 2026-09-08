@@ -9,18 +9,27 @@ interface BadgeProps {
 }
 
 const TONES: Record<NonNullable<BadgeProps["tone"]>, string> = {
-  critical: "bg-rose-500/10 text-rose-300 border-rose-500/30",
-  high: "bg-amber-500/10 text-amber-300 border-amber-500/30",
-  normal: "bg-emerald-500/10 text-emerald-300 border-emerald-500/30",
+  critical: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+  high: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+  normal: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
   neutral: "bg-white/5 text-slate-300 border-white/10",
-  success: "bg-emerald-500/10 text-emerald-300 border-emerald-500/30",
+  success: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+};
+
+const DOT_TONES: Record<NonNullable<BadgeProps["tone"]>, string> = {
+  critical: "bg-rose-400",
+  high: "bg-amber-400",
+  normal: "bg-emerald-400",
+  neutral: "bg-slate-400",
+  success: "bg-emerald-400",
 };
 
 export function Badge({ children, tone = "neutral", className = "" }: BadgeProps) {
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${TONES[tone]} ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${TONES[tone]} ${className}`}
     >
+      <span className={`h-1.5 w-1.5 rounded-full ${DOT_TONES[tone]}`} />
       {children}
     </span>
   );

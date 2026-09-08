@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Clock, LayoutDashboard, LogOut, Package, RotateCcw, Shield, Skull, TrendingUp, Users } from "lucide-react";
+import { Clock, FileSpreadsheet, LayoutDashboard, LogOut, Package, RotateCcw, Shield, Skull, TrendingUp, Users } from "lucide-react";
 import { useLanguage } from "../../i18n/LanguageContext";
 import { useToasts } from "../../hooks/useToasts";
 import { useAdminState } from "../../hooks/useAdminState";
@@ -11,8 +11,9 @@ import { AdminPanel } from "./AdminPanel";
 import { ManagersPanel } from "./ManagersPanel";
 import { ResetPanel } from "./ResetPanel";
 import { PendingApprovalsPanel } from "./PendingApprovalsPanel";
+import { SalesReportPanel } from "./SalesReportPanel";
 
-type AdminSection = "overview" | "pending" | "products" | "bossfights" | "managers" | "reset";
+type AdminSection = "overview" | "pending" | "products" | "bossfights" | "managers" | "reports" | "reset";
 
 interface AdminAppProps {
   managerName: string;
@@ -39,11 +40,12 @@ export function AdminApp({ managerName, logout }: AdminAppProps) {
     { id: "products", label: t("adminNavProducts"), icon: Package },
     { id: "bossfights", label: t("adminNavBossFights"), icon: Skull },
     { id: "managers", label: t("adminNavManagers"), icon: Users },
+    { id: "reports", label: t("salesReport"), icon: FileSpreadsheet },
     { id: "reset", label: t("adminNavReset"), icon: RotateCcw },
   ];
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-950 text-slate-100">
+    <div className="relative min-h-screen w-full overflow-hidden bg-[#0B0F17] text-slate-100">
       <BgDecor />
       <ToastStack toasts={toasts} />
 
@@ -121,6 +123,7 @@ export function AdminApp({ managerName, logout }: AdminAppProps) {
             onCreateFocusProduct={admin.addFocusProduct}
             onBulkImport={admin.bulkImportProducts}
             onRemoveFocusProduct={admin.removeFocusProduct}
+            onUpdateCashBonus={admin.updateCashBonus}
             onToggleBossFight={admin.toggleBossFight}
             hideBossFights
           />
@@ -133,6 +136,7 @@ export function AdminApp({ managerName, logout }: AdminAppProps) {
             onCreateFocusProduct={admin.addFocusProduct}
             onBulkImport={admin.bulkImportProducts}
             onRemoveFocusProduct={admin.removeFocusProduct}
+            onUpdateCashBonus={admin.updateCashBonus}
             onToggleBossFight={admin.toggleBossFight}
             onlyBossFights
           />
@@ -141,6 +145,8 @@ export function AdminApp({ managerName, logout }: AdminAppProps) {
         {section === "managers" && (
           <ManagersPanel managers={admin.approvedAccounts} onAdjust={admin.adjustManager} onChangeRole={admin.changeRole} />
         )}
+
+        {section === "reports" && <SalesReportPanel products={admin.salesReport.products} managers={admin.salesReport.managers} />}
 
         {section === "reset" && (
           <ResetPanel

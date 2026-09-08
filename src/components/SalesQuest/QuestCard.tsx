@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertTriangle, Coins, Minus, Package, Plus, TrendingUp, Zap } from "lucide-react";
+import { AlertTriangle, Coins, DollarSign, Minus, Package, Plus, TrendingUp, Zap } from "lucide-react";
 import type { QuestCardData } from "../../types/sales";
 import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
@@ -23,9 +23,14 @@ const BORDER = {
   normal: "border-emerald-500/50 hover:border-emerald-400/70",
 } as const;
 
+interface FloatingNumber {
+  id: number;
+  label: string;
+}
+
 export function QuestCard({ quest, pulsing, onSell }: QuestCardProps) {
   const { t } = useLanguage();
-  const { product, priority, xpReward, coinReward } = quest;
+  const { product, priority, xpReward, coinReward, cashBonus } = quest;
   const soldOut = product.stock <= 0;
   const isCritical = !soldOut && product.stock <= 10;
   const isWarning = !soldOut && !isCritical && product.stock <= 25;
@@ -34,26 +39,46 @@ export function QuestCard({ quest, pulsing, onSell }: QuestCardProps) {
   const clearedPct = product.initialStock > 0 ? (cleared / product.initialStock) * 100 : 0;
 
   const [qty, setQty] = useState(1);
+  const [floaters, setFloaters] = useState<FloatingNumber[]>([]);
   const clampQty = (n: number) => Math.max(1, Math.min(product.stock || 1, n));
+
+  const fireSplash = () => {
+    const id = Date.now();
+    setFloaters((f) => [...f, { id, label: `+${xpReward * qty} XP` }]);
+    window.setTimeout(() => setFloaters((f) => f.filter((x) => x.id !== id)), 900);
+  };
 
   return (
     <Card
       glow={GLOW[priority]}
-      className={`group flex flex-col overflow-hidden border p-0 transition-all duration-300 hover:-translate-y-1 ${BORDER[priority]} ${
+      className={`group relative flex flex-col overflow-hidden border p-0 transition-all duration-300 hover:-translate-y-1 ${BORDER[priority]} ${
         pulsing ? "scale-[1.02] ring-2 ring-emerald-400/60" : ""
       }`}
     >
-      {/* image / placeholder banner */}
-      <div className="relative h-20 w-full overflow-hidden">
-        <ProductImage
-          name={product.name}
-          category={product.category}
-          src={product.imageUrl}
-          accentFrom={cat.glowFrom}
-          accentTo={cat.glowTo}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
+      {/* floating +XP splash */}
+      {floaters.map((f) => (
+        <span
+          key={f.id}
+          className="pointer-events-none absolute left-1/2 top-1/2 z-20 -translate-x-1/2 text-sm font-black text-violet-300 drop-shadow-[0_0_6px_rgba(167,139,250,0.8)]"
+          style={{ animation: "floatUp 0.9s ease-out forwards" }}
+        >
+          {f.label}
+        </span>
+      ))}
+
+      {/* fixed 16:9 image container — dark padded backdrop so photos with white/gray backgrounds don't clash */}
+      <div className="relative w-full overflow-hidden bg-slate-950/60" style={{ aspectRatio: "16/9" }}>
+        <div className="absolute inset-0 flex items-center justify-center p-2">
+          <ProductImage
+            name={product.name}
+            category={product.category}
+            src={product.imageUrl}
+            accentFrom={cat.glowFrom}
+            accentTo={cat.glowTo}
+            className="h-full w-full rounded-lg object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/10 to-transparent" />
         <div className="absolute left-2 top-2">
           <PriorityBadge priority={priority} />
         </div>
@@ -88,17 +113,22 @@ export function QuestCard({ quest, pulsing, onSell }: QuestCardProps) {
           </div>
         </div>
 
-        <div className="mb-2.5 flex items-center gap-3 text-xs">
+        <div className="mb-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
           <span className="flex items-center gap-1 font-bold text-violet-300">
             <Zap className="h-3.5 w-3.5" /> +{xpReward * qty}
           </span>
           <span className="flex items-center gap-1 font-bold text-amber-300">
             <Coins className="h-3.5 w-3.5" /> +{coinReward * qty}
           </span>
+          {cashBonus > 0 && (
+            <span className="flex items-center gap-1 font-bold text-emerald-300">
+              <DollarSign className="h-3.5 w-3.5" /> +{(cashBonus * qty).toFixed(2)}
+            </span>
+          )}
         </div>
 
         {!soldOut && (
-          <div className="mb-2.5 flex items-center justify-center gap-1.5 rounded-lg border border-slate-800/80 bg-slate-950/40 p-1">
+          <div className="mb-2.5 flex items-center justify-center gap-1.5 rounded-lg border border-white/[0.08] bg-slate-950/40 p-1">
             <button
               type="button"
               onClick={() => setQty((q) => clampQty(q - 1))}
@@ -127,6 +157,7 @@ export function QuestCard({ quest, pulsing, onSell }: QuestCardProps) {
 
         <Button
           onClick={() => {
+            fireSplash();
             onSell(qty);
             setQty(1);
           }}

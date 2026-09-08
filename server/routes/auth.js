@@ -16,6 +16,7 @@ function toPublicAccount(a) {
     level: a.level,
     xp: a.xp,
     coins: a.coins,
+    totalCashBonus: a.totalCashBonus || 0,
     questsCompleted: a.questsCompleted,
     streak: a.streak,
   };

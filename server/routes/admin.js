@@ -63,6 +63,7 @@ router.get("/inventory", (_req, res) => {
         priority: fp.priority,
         xpReward: fp.xpReward,
         coinReward: fp.coinReward,
+        cashBonus: fp.cashBonus || 0,
         productId: p.id,
         name: p.name,
         sku: p.sku,
@@ -70,6 +71,7 @@ router.get("/inventory", (_req, res) => {
         price: p.price,
         stock: p.stock,
         initialStock: p.initialStock,
+        soldCount: p.soldCount || 0,
         imageUrl: p.imageUrl,
       };
     })
@@ -78,7 +80,7 @@ router.get("/inventory", (_req, res) => {
 });
 
 router.post("/focus-products", (req, res) => {
-  const { name, sku, category, description, price, stock, priority, xpReward, coinReward, imageUrl } = req.body || {};
+  const { name, sku, category, description, price, stock, priority, xpReward, coinReward, cashBonus, imageUrl } = req.body || {};
   if (!name || !sku || !stock) return res.status(400).json({ error: "missing_fields" });
 
   const product = {
@@ -91,6 +93,7 @@ router.post("/focus-products", (req, res) => {
     stock: Number(stock),
     initialStock: Number(stock),
     imageUrl: imageUrl || null,
+    soldCount: 0,
   };
   const focus = {
     id: crypto.randomUUID(),
@@ -98,7 +101,9 @@ router.post("/focus-products", (req, res) => {
     priority,
     xpReward: Number(xpReward) || 0,
     coinReward: Number(coinReward) || 0,
+    cashBonus: Number(cashBonus) || 0,
     active: true,
+    createdAt: new Date().toISOString(),
   };
   state.products.push(product);
   state.focusProducts.push(focus);
@@ -109,7 +114,7 @@ router.post("/focus-products", (req, res) => {
 
 router.post("/focus-products/bulk", (req, res) => {
   const rows = req.body?.rows || [];
-  const REWARD_BASE = { critical: [300, 120], high: [250, 100], normal: [100, 35] };
+  const REWARD_BASE = { critical: [100, 120], high: [85, 100], normal: [35, 35] };
 
   for (const row of rows) {
     const product = {
@@ -122,6 +127,7 @@ router.post("/focus-products/bulk", (req, res) => {
       stock: Number(row.stock),
       initialStock: Number(row.stock),
       imageUrl: null,
+      soldCount: 0,
     };
     const [xpReward, coinReward] = REWARD_BASE[row.priority] || REWARD_BASE.normal;
     state.products.push(product);
@@ -131,7 +137,9 @@ router.post("/focus-products/bulk", (req, res) => {
       priority: row.priority,
       xpReward,
       coinReward,
+      cashBonus: 0,
       active: true,
+      createdAt: new Date().toISOString(),
     });
   }
   save();
@@ -143,6 +151,45 @@ router.delete("/focus-products/:id", (req, res) => {
   if (fp) fp.active = false;
   save();
   res.status(204).end();
+});
+
+router.post("/focus-products/:id/cash-bonus", (req, res) => {
+  const { cashBonus } = req.body || {};
+  const fp = state.focusProducts.find((f) => f.id === req.params.id);
+  if (!fp) return res.status(404).json({ error: "not_found" });
+  fp.cashBonus = Math.max(0, Number(cashBonus) || 0);
+  save();
+  res.status(204).end();
+});
+
+// ---- sales report — for reconciling sold quantities against 1C ------------
+router.get("/sales-report", (_req, res) => {
+  const rows = state.products.map((p) => {
+    const fp = state.focusProducts.find((f) => f.productId === p.id);
+    const cashBonus = fp?.cashBonus || 0;
+    return {
+      productId: p.id,
+      name: p.name,
+      sku: p.sku,
+      category: p.category,
+      soldCount: p.soldCount || 0,
+      stock: p.stock,
+      initialStock: p.initialStock,
+      cashBonusPerUnit: cashBonus,
+      totalCashPaid: Math.round(p.soldCount * cashBonus * 100) / 100,
+    };
+  });
+
+  const managerTotals = state.accounts
+    .filter((a) => a.role === "manager")
+    .map((a) => ({
+      accountId: a.id,
+      name: a.name,
+      questsCompleted: a.questsCompleted,
+      totalCashBonus: a.totalCashBonus || 0,
+    }));
+
+  res.json({ products: rows, managers: managerTotals });
 });
 
 // ---- boss fights -----------------------------------------------------------

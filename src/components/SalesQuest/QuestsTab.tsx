@@ -25,7 +25,7 @@ export function QuestsTab({ manager, rank, quests, pulseFocusId, bossFights, onS
     [quests, filter]
   );
 
-  const activeBossFight = bossFights.find((bf) => bf.active);
+  const activeBossFights = bossFights.filter((bf) => bf.active);
 
   return (
     <div className="space-y-6">
@@ -36,7 +36,13 @@ export function QuestsTab({ manager, rank, quests, pulseFocusId, bossFights, onS
 
       <ProfileCard manager={manager} rank={rank} />
 
-      {activeBossFight && <BossFightCard bossFight={activeBossFight} onJoin={() => onJoinBossFight(activeBossFight.id)} />}
+      {activeBossFights.length > 0 && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {activeBossFights.map((bf) => (
+            <BossFightCard key={bf.id} bossFight={bf} onJoin={() => onJoinBossFight(bf.id)} />
+          ))}
+        </div>
+      )}
 
       <QuestFilters value={filter} onChange={setFilter} />
 
