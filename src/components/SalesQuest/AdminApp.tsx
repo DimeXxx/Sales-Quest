@@ -121,6 +121,7 @@ export function AdminApp({ managerName, logout }: AdminAppProps) {
             inventory={admin.inventory}
             bossFights={admin.bossFights}
             onCreateFocusProduct={admin.addFocusProduct}
+            onUpdateFocusProduct={admin.updateFocusProduct}
             onBulkImport={admin.bulkImportProducts}
             onRemoveFocusProduct={admin.removeFocusProduct}
             onUpdateCashBonus={admin.updateCashBonus}
@@ -134,6 +135,7 @@ export function AdminApp({ managerName, logout }: AdminAppProps) {
             inventory={admin.inventory}
             bossFights={admin.bossFights}
             onCreateFocusProduct={admin.addFocusProduct}
+            onUpdateFocusProduct={admin.updateFocusProduct}
             onBulkImport={admin.bulkImportProducts}
             onRemoveFocusProduct={admin.removeFocusProduct}
             onUpdateCashBonus={admin.updateCashBonus}

@@ -26,8 +26,22 @@ interface AdminPanelProps {
     cashBonus: number;
   }) => void;
   onBulkImport: (rows: ParsedProductRow[]) => void;
-  onRemoveFocusProduct: (id: string) => void;
+  onRemoveFocusProduct: (id: string, permanent?: boolean) => void;
   onUpdateCashBonus: (focusProductId: string, cashBonus: number) => void;
+  onUpdateFocusProduct: (
+    focusProductId: string,
+    patch: Partial<{
+      name: string;
+      sku: string;
+      category: string;
+      price: number;
+      priority: Priority;
+      xpReward: number;
+      coinReward: number;
+      cashBonus: number;
+      stock: number;
+    }>
+  ) => void;
   onToggleBossFight: (id: string) => void;
   /** Show only the products/inventory section (used by the split Admin nav). */
   hideBossFights?: boolean;
@@ -42,6 +56,7 @@ export function AdminPanel({
   onBulkImport,
   onRemoveFocusProduct,
   onUpdateCashBonus,
+  onUpdateFocusProduct,
   onToggleBossFight,
   hideBossFights = false,
   onlyBossFights = false,
@@ -54,7 +69,7 @@ export function AdminPanel({
         <div className="grid gap-5 lg:grid-cols-5">
           <div className="lg:col-span-3">
             <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-400">{t("inventory")}</h2>
-            <InventoryTable rows={inventory} onRemove={onRemoveFocusProduct} onUpdateCashBonus={onUpdateCashBonus} />
+            <InventoryTable rows={inventory} onRemove={onRemoveFocusProduct} onUpdateCashBonus={onUpdateCashBonus} onUpdate={onUpdateFocusProduct} />
           </div>
           <div className="space-y-5 lg:col-span-2">
             <ExcelImportPanel onImport={onBulkImport} />

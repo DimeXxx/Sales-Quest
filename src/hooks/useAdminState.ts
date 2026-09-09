@@ -138,11 +138,33 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
   );
 
   const removeFocusProduct = useCallback(
-    async (id: string) => {
-      await api.del(`/admin/focus-products/${id}`);
+    async (id: string, permanent = false) => {
+      await api.del(`/admin/focus-products/${id}${permanent ? "?permanent=true" : ""}`);
       await loadAll();
     },
     [loadAll]
+  );
+
+  const updateFocusProduct = useCallback(
+    async (
+      focusProductId: string,
+      patch: Partial<{
+        name: string;
+        sku: string;
+        category: string;
+        price: number;
+        priority: Priority;
+        xpReward: number;
+        coinReward: number;
+        cashBonus: number;
+        stock: number;
+      }>
+    ) => {
+      await api.put(`/admin/focus-products/${focusProductId}`, patch);
+      pushToast("Товар обновлён");
+      await loadAll();
+    },
+    [loadAll, pushToast]
   );
 
   const toggleBossFight = useCallback(
@@ -204,6 +226,7 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
     changeRole,
     addFocusProduct,
     updateCashBonus,
+    updateFocusProduct,
     bulkImportProducts,
     removeFocusProduct,
     toggleBossFight,

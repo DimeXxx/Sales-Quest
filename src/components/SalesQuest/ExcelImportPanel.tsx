@@ -100,6 +100,7 @@ export function ExcelImportPanel({ onImport }: ExcelImportPanelProps) {
                   <th className="px-3 py-2 font-semibold">Остаток</th>
                   <th className="px-3 py-2 font-semibold">Цена</th>
                   <th className="px-3 py-2 font-semibold">Приоритет</th>
+                  <th className="px-3 py-2 font-semibold">$ бонус</th>
                 </tr>
               </thead>
               <tbody>
@@ -116,6 +117,7 @@ export function ExcelImportPanel({ onImport }: ExcelImportPanelProps) {
                     <td className="px-3 py-2 font-mono text-slate-400">{r.stock}</td>
                     <td className="px-3 py-2 font-mono text-slate-400">{r.price ? `$${r.price}` : "—"}</td>
                     <td className="px-3 py-2"><PriorityBadge priority={r.priority} /></td>
+                    <td className="px-3 py-2 font-mono text-emerald-300">{r.cashBonus ? `$${r.cashBonus}` : "—"}</td>
                   </tr>
                 ))}
               </tbody>

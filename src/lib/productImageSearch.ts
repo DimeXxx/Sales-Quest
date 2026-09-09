@@ -87,40 +87,22 @@ async function searchCommonsOnce(query: string): Promise<string | null> {
 }
 
 /**
- * Resolves a real internet photo for a product. Tries the curated category
- * phrase first (best relevance), then falls back to the raw category, then
- * to the product name. Results are cached per lookup key for the tab's
- * lifetime. Returns null (never throws) if nothing suitable was found.
+ * Resolves a real internet photo for a product — but ONLY for the curated
+ * categories above. Earlier versions also fell back to searching the raw
+ * category label or the product name directly, which occasionally matched
+ * something completely unrelated and unprofessional (a random portrait, an
+ * unrelated object, etc.) for uncategorized or Excel-imported products.
+ * That fallback is intentionally removed: any category not in the curated
+ * map returns null immediately, so the caller shows the safe icon
+ * placeholder instead of gambling on a loose text match.
  */
-export function findProductPhoto(name: string, category?: string): Promise<string | null> {
-  const key = `${category ?? ""}::${name}`.trim().toLowerCase();
-  if (!key) return Promise.resolve(null);
+export function findProductPhoto(_name: string, category?: string): Promise<string | null> {
+  const mapped = category ? CATEGORY_QUERY[category] : undefined;
+  if (!mapped) return Promise.resolve(null); // unknown category, or explicitly null (e.g. Software) — always use the placeholder
 
+  const key = mapped.toLowerCase();
   if (!cache.has(key)) {
-    cache.set(key, resolve());
+    cache.set(key, searchCommonsOnce(mapped).catch(() => null));
   }
   return cache.get(key)!;
-
-  async function resolve(): Promise<string | null> {
-    const candidates: string[] = [];
-
-    if (category && category in CATEGORY_QUERY) {
-      const mapped = CATEGORY_QUERY[category];
-      if (mapped === null) return null; // explicitly no sensible photo for this category
-      candidates.push(mapped);
-    } else if (category) {
-      candidates.push(category);
-    }
-    if (name) candidates.push(name);
-
-    for (const query of candidates) {
-      try {
-        const found = await searchCommonsOnce(query);
-        if (found) return found;
-      } catch {
-        // try the next candidate
-      }
-    }
-    return null;
-  }
 }

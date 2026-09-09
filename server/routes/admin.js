@@ -137,7 +137,7 @@ router.post("/focus-products/bulk", (req, res) => {
       priority: row.priority,
       xpReward,
       coinReward,
-      cashBonus: 0,
+      cashBonus: Number(row.cashBonus) || 0,
       active: true,
       createdAt: new Date().toISOString(),
     });
@@ -148,7 +148,46 @@ router.post("/focus-products/bulk", (req, res) => {
 
 router.delete("/focus-products/:id", (req, res) => {
   const fp = state.focusProducts.find((f) => f.id === req.params.id);
-  if (fp) fp.active = false;
+  if (!fp) return res.status(404).json({ error: "not_found" });
+
+  if (req.query.permanent === "true") {
+    state.focusProducts = state.focusProducts.filter((f) => f.id !== req.params.id);
+    // Only remove the underlying product too if no other focus entry references it.
+    const stillReferenced = state.focusProducts.some((f) => f.productId === fp.productId);
+    if (!stillReferenced) {
+      state.products = state.products.filter((p) => p.id !== fp.productId);
+    }
+  } else {
+    fp.active = false;
+  }
+  save();
+  res.status(204).end();
+});
+
+router.put("/focus-products/:id", (req, res) => {
+  const fp = state.focusProducts.find((f) => f.id === req.params.id);
+  if (!fp) return res.status(404).json({ error: "not_found" });
+  const product = state.products.find((p) => p.id === fp.productId);
+  if (!product) return res.status(404).json({ error: "not_found" });
+
+  const { name, sku, category, price, priority, xpReward, coinReward, cashBonus, stock } = req.body || {};
+
+  if (name !== undefined) product.name = name;
+  if (sku !== undefined) product.sku = sku;
+  if (category !== undefined) product.category = category;
+  if (price !== undefined) product.price = Number(price) || 0;
+  if (stock !== undefined && stock !== "") {
+    // Manual restock — treat the new number as a fresh cycle, so the
+    // clearance gauge (sold vs initial) doesn't go negative or look wrong.
+    product.stock = Number(stock) || 0;
+    product.initialStock = Number(stock) || 0;
+  }
+
+  if (priority !== undefined) fp.priority = priority;
+  if (xpReward !== undefined) fp.xpReward = Number(xpReward) || 0;
+  if (coinReward !== undefined) fp.coinReward = Number(coinReward) || 0;
+  if (cashBonus !== undefined) fp.cashBonus = Number(cashBonus) || 0;
+
   save();
   res.status(204).end();
 });

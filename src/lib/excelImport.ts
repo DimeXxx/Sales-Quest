@@ -9,6 +9,7 @@ export interface ParsedProductRow {
   stock: number;
   stockAgeDays: number;
   marginPercent: number;
+  cashBonus: number;
   priority: Priority;
   valid: boolean;
   error?: string;
@@ -24,6 +25,7 @@ const HEADER_ALIASES: Record<keyof Omit<ParsedProductRow, "valid" | "error" | "p
   stock: ["stock", "остаток", "qty", "quantity", "количество"],
   stockAgeDays: ["stockagedays", "stock age", "возраст остатка", "дней на складе", "age"],
   marginPercent: ["margin", "маржа", "margin %", "маржа %"],
+  cashBonus: ["cash bonus", "денежный бонус", "$ бонус", "бонус $", "бонус за шт", "бонус", "cashbonus"],
 };
 
 function normalizeHeader(h: string): string {
@@ -65,6 +67,7 @@ export async function parseProductsWorkbook(file: File): Promise<{ rows: ParsedP
     stock: findColumn(headers, HEADER_ALIASES.stock),
     stockAgeDays: findColumn(headers, HEADER_ALIASES.stockAgeDays),
     marginPercent: findColumn(headers, HEADER_ALIASES.marginPercent),
+    cashBonus: findColumn(headers, HEADER_ALIASES.cashBonus),
   };
 
   const rows: ParsedProductRow[] = raw.map((r) => {
@@ -76,6 +79,7 @@ export async function parseProductsWorkbook(file: File): Promise<{ rows: ParsedP
     const stock = colMap.stock ? Number(r[colMap.stock]) || 0 : 0;
     const stockAgeDays = colMap.stockAgeDays ? Number(r[colMap.stockAgeDays]) || 0 : 0;
     const marginPercent = colMap.marginPercent ? Number(r[colMap.marginPercent]) || 0 : 0;
+    const cashBonus = colMap.cashBonus ? Number(r[colMap.cashBonus]) || 0 : 0;
 
     const priority = guessPriority(stock, marginPercent);
     const valid = Boolean(name && stock >= 0);
@@ -89,6 +93,7 @@ export async function parseProductsWorkbook(file: File): Promise<{ rows: ParsedP
       stock,
       stockAgeDays,
       marginPercent,
+      cashBonus,
       priority,
       valid,
       error: valid ? undefined : "Не найдено название или остаток",
@@ -111,10 +116,11 @@ export async function downloadImportTemplate() {
       Остаток: 45,
       "Дней на складе": 60,
       "Маржа %": 16,
+      "Денежный бонус $": 5,
     },
   ];
   const ws = XLSX.utils.json_to_sheet(sample);
-  ws["!cols"] = [{ wch: 30 }, { wch: 16 }, { wch: 36 }, { wch: 16 }, { wch: 10 }, { wch: 10 }, { wch: 16 }, { wch: 10 }];
+  ws["!cols"] = [{ wch: 30 }, { wch: 16 }, { wch: 36 }, { wch: 16 }, { wch: 10 }, { wch: 10 }, { wch: 16 }, { wch: 10 }, { wch: 16 }];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Products");
   XLSX.writeFile(wb, "sales-quest-import-template.xlsx");
