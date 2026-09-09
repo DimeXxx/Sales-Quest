@@ -103,7 +103,7 @@ export function InventoryTable({ rows, onRemove, onUpdateCashBonus, onUpdate }: 
               <th className="px-4 py-3 font-semibold">XP</th>
               <th className="px-4 py-3 font-semibold">Coins</th>
               <th className="px-4 py-3 font-semibold">$ {t("cashBonusPerUnit")}</th>
-              <th className="px-4 py-3" />
+              <th className="sticky right-0 bg-[#151D2A] px-4 py-3" />
             </tr>
           </thead>
           <tbody>
@@ -135,7 +135,7 @@ export function InventoryTable({ rows, onRemove, onUpdateCashBonus, onUpdate }: 
                     <td className="px-4 py-2"><input className={field} type="number" value={editDraft.xpReward} onChange={(e) => setEditDraft((d) => d && { ...d, xpReward: e.target.value })} /></td>
                     <td className="px-4 py-2"><input className={field} type="number" value={editDraft.coinReward} onChange={(e) => setEditDraft((d) => d && { ...d, coinReward: e.target.value })} /></td>
                     <td className="px-4 py-2"><input className={field} type="number" step="0.01" value={editDraft.cashBonus} onChange={(e) => setEditDraft((d) => d && { ...d, cashBonus: e.target.value })} /></td>
-                    <td className="px-4 py-2">
+                    <td className="sticky right-0 bg-cyan-500/[0.06] px-4 py-2 backdrop-blur-sm">
                       <div className="flex items-center gap-1">
                         <button onClick={() => saveEdit(r.focusProductId)} className="flex h-7 w-7 items-center justify-center rounded-md bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25">
                           <Check className="h-3.5 w-3.5" />
@@ -183,7 +183,7 @@ export function InventoryTable({ rows, onRemove, onUpdateCashBonus, onUpdate }: 
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="sticky right-0 bg-[#151D2A] px-4 py-3 backdrop-blur-sm">
                     <div className="flex items-center gap-1.5">
                       <button onClick={() => startEdit(r)} className="flex h-7 w-7 items-center justify-center rounded-md bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20">
                         <Pencil className="h-3.5 w-3.5" />

@@ -30,18 +30,46 @@ interface CommonsResponse {
 }
 
 // Specific, unambiguous phrase queries for the categories this app ships
-// with — far more reliable than searching the raw category label. A
-// category mapped to `null` intentionally skips the search entirely (no
-// generic photo makes sense for it, e.g. software), always showing the
-// stylized placeholder instead.
-const CATEGORY_QUERY: Record<string, string | null> = {
-  Storage: "hard disk drive",
-  "IP Camera": "IP security camera",
-  NVR: "network video recorder",
-  "Access Control": "access control keypad",
-  "PTZ Camera": "PTZ security camera",
-  Software: null,
+// with — far more reliable than searching the raw category label.
+const CATEGORY_QUERY: Record<string, string> = {
+  storage: "hard disk drive",
+  "ip camera": "IP security camera",
+  nvr: "network video recorder",
+  "access control": "access control keypad",
+  "ptz camera": "PTZ security camera",
 };
+
+// Software (and similar categories with no sensible product photo) is
+// intentionally excluded from CATEGORY_QUERY — it always falls through to
+// the placeholder icon.
+
+// Keyword detection scanned against BOTH the category and the product name.
+// Order matters: more specific patterns (PTZ, NVR, access control) are
+// checked before the generic "camera" pattern so a PTZ camera doesn't get
+// matched as a plain IP camera. Every match still only ever produces one of
+// the fixed, vetted queries above — we never search the user's raw text
+// directly, which is what caused unrelated/unprofessional photos before.
+const KEYWORD_PATTERNS: { pattern: RegExp; query: string }[] = [
+  { pattern: /ptz/i, query: CATEGORY_QUERY["ptz camera"] },
+  { pattern: /nvr|видеорегистратор|регистратор/i, query: CATEGORY_QUERY.nvr },
+  { pattern: /access\s*control|контрол[ьяию].*доступ|keypad|access\s*terminal/i, query: CATEGORY_QUERY["access control"] },
+  { pattern: /hdd|hard\s*disk|storage|жёстк|жестк|диск/i, query: CATEGORY_QUERY.storage },
+  { pattern: /camera|видеокамер|камера|ipc\b/i, query: CATEGORY_QUERY["ip camera"] },
+];
+
+function resolveQuery(name: string, category?: string): string | null {
+  const normalizedCategory = category?.trim().toLowerCase() ?? "";
+  if (normalizedCategory && normalizedCategory in CATEGORY_QUERY) {
+    return CATEGORY_QUERY[normalizedCategory];
+  }
+  if (normalizedCategory === "software") return null; // never search for this one
+
+  const haystack = `${category ?? ""} ${name ?? ""}`;
+  for (const { pattern, query } of KEYWORD_PATTERNS) {
+    if (pattern.test(haystack)) return query;
+  }
+  return null;
+}
 
 const MIN_WIDTH = 400;
 const MIN_HEIGHT = 250;
@@ -87,22 +115,20 @@ async function searchCommonsOnce(query: string): Promise<string | null> {
 }
 
 /**
- * Resolves a real internet photo for a product — but ONLY for the curated
- * categories above. Earlier versions also fell back to searching the raw
- * category label or the product name directly, which occasionally matched
- * something completely unrelated and unprofessional (a random portrait, an
- * unrelated object, etc.) for uncategorized or Excel-imported products.
- * That fallback is intentionally removed: any category not in the curated
- * map returns null immediately, so the caller shows the safe icon
- * placeholder instead of gambling on a loose text match.
+ * Resolves a real internet photo for a product. The search query is always
+ * one of a small, fixed, vetted list (see CATEGORY_QUERY above) — we scan
+ * the category and product name for known keywords to pick one, but never
+ * search the user's raw text directly. That's what caused unrelated,
+ * unprofessional photos before (a random portrait for a camera, etc.). If
+ * nothing matches, the caller should show the icon placeholder instead.
  */
-export function findProductPhoto(_name: string, category?: string): Promise<string | null> {
-  const mapped = category ? CATEGORY_QUERY[category] : undefined;
-  if (!mapped) return Promise.resolve(null); // unknown category, or explicitly null (e.g. Software) — always use the placeholder
+export function findProductPhoto(name: string, category?: string): Promise<string | null> {
+  const query = resolveQuery(name, category);
+  if (!query) return Promise.resolve(null);
 
-  const key = mapped.toLowerCase();
+  const key = query.toLowerCase();
   if (!cache.has(key)) {
-    cache.set(key, searchCommonsOnce(mapped).catch(() => null));
+    cache.set(key, searchCommonsOnce(query).catch(() => null));
   }
   return cache.get(key)!;
 }
