@@ -43,11 +43,11 @@ export function useGameState({ pushToast }: UseGameStateArgs) {
   }, [loadAll]);
 
   const registerSale = useCallback(
-    async (focusProductId: string, quantity = 1) => {
+    async (focusProductId: string, quantity = 1, details?: { customer?: string; dealValue?: number }) => {
       try {
         const result = await api.post<{ xpEarned: number; coinsEarned: number; leveledUp: boolean; newLevel: number }>(
           "/sales",
-          { focusProductId, quantity }
+          { focusProductId, quantity, ...details }
         );
         setPulseFocusId(focusProductId);
         window.setTimeout(() => setPulseFocusId(null), 500);
@@ -56,12 +56,14 @@ export function useGameState({ pushToast }: UseGameStateArgs) {
         await loadAll();
 
         if (result.leveledUp) {
-          pushToast(`🚀 LEVEL UP! Level ${result.newLevel}`, "Ты становишься мастером охоты", "levelup");
+          pushToast(`🚀 Level up! Level ${result.newLevel}`, "", "levelup");
         }
-        pushToast("🎯 Продажа зафиксирована!", `+${result.xpEarned} XP · +${result.coinsEarned} Coins`);
+        pushToast("Sale logged", `+${result.xpEarned} XP · +${result.coinsEarned} points`);
+        return true;
       } catch (e) {
         const code = e instanceof ApiError ? e.code : "unknown_error";
-        pushToast("Не удалось зафиксировать продажу", code, "error");
+        pushToast("Could not log the sale", code, "error");
+        return false;
       }
     },
     [loadAll, refreshAccount, pushToast]

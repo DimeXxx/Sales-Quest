@@ -1,17 +1,25 @@
-import { useState } from "react";
+import { Suspense, lazy, useState } from "react";
 import { LayoutGrid } from "lucide-react";
 import { useToasts } from "./hooks/useToasts";
 import { useGameState } from "./hooks/useGameState";
 import { useAuth } from "./auth/AuthContext";
 import { useLanguage } from "./i18n/LanguageContext";
+import type { QuestCardData } from "./types/sales";
 import { ToastStack } from "./components/ui/Toast";
 import { LoginScreen } from "./components/auth/LoginScreen";
 import { PendingApprovalScreen } from "./components/auth/PendingApprovalScreen";
 import { SideNav, BottomNav, type TabId } from "./components/SalesQuest/NavBar";
 import { Header } from "./components/SalesQuest/Header";
 import { QuestsTab } from "./components/SalesQuest/QuestsTab";
+import { MyMissions } from "./components/SalesQuest/MyMissions";
+import { Products } from "./components/SalesQuest/Products";
+import { MissionDetailModal } from "./components/SalesQuest/MissionDetailModal";
 import { ArenaTab } from "./components/SalesQuest/ArenaTab";
 import { AdminApp } from "./components/SalesQuest/AdminApp";
+
+// recharts is a sizeable dependency — only the Analytics tab needs it, so it
+// ships as its own chunk instead of bloating the initial load for everyone.
+const Analytics = lazy(() => import("./components/SalesQuest/Analytics").then((m) => ({ default: m.Analytics })));
 
 export default function App() {
   const { account, isAuthenticated, isLoading, logout } = useAuth();
@@ -45,6 +53,7 @@ export default function App() {
 
 function ManagerApp({ accountName, logout }: { accountName: string; logout: () => void }) {
   const [tab, setTab] = useState<TabId>("quests");
+  const [selectedQuest, setSelectedQuest] = useState<QuestCardData | null>(null);
   const { toasts, pushToast } = useToasts();
   const { t } = useLanguage();
   const game = useGameState({ pushToast });
@@ -74,6 +83,10 @@ function ManagerApp({ accountName, logout }: { accountName: string; logout: () =
               />
             )}
 
+            {tab === "missions" && <MyMissions quests={game.questCards} onSelect={setSelectedQuest} />}
+
+            {tab === "products" && <Products quests={game.questCards} onSelect={setSelectedQuest} />}
+
             {tab === "arena" && game.currentManager && (
               <ArenaTab
                 managers={game.leaderboard}
@@ -83,9 +96,17 @@ function ManagerApp({ accountName, logout }: { accountName: string; logout: () =
                 onRedeem={game.redeemReward}
               />
             )}
+
+            {tab === "analytics" && (
+              <Suspense fallback={<div className="py-10 text-center text-sm text-[#8B98A9]">Loading…</div>}>
+                <Analytics />
+              </Suspense>
+            )}
           </main>
         </div>
       </div>
+
+      <MissionDetailModal quest={selectedQuest} onClose={() => setSelectedQuest(null)} onSell={game.registerSale} />
 
       <BottomNav active={tab} onChange={setTab} />
     </div>

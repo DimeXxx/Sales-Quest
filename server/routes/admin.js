@@ -289,4 +289,43 @@ router.post("/reset/all", (_req, res) => {
   res.status(204).end();
 });
 
+// ---- company-wide analytics ------------------------------------------
+router.get("/analytics", (_req, res) => {
+  function isoWeekKey(iso) {
+    const d = new Date(iso);
+    const onejan = new Date(d.getFullYear(), 0, 1);
+    const week = Math.ceil(((d - onejan) / 86400000 + onejan.getDay() + 1) / 7);
+    return `${d.getFullYear()}-W${String(week).padStart(2, "0")}`;
+  }
+
+  const byWeek = {};
+  for (const s of state.sales) {
+    const key = isoWeekKey(s.createdAt);
+    if (!byWeek[key]) byWeek[key] = { week: key, units: 0, xp: 0, revenue: 0 };
+    byWeek[key].units += s.quantity;
+    byWeek[key].xp += s.xpEarned;
+    const product = state.products.find((p) => p.id === s.productId);
+    byWeek[key].revenue += s.dealValue || (product ? product.price * s.quantity : 0);
+  }
+  const salesByWeek = Object.values(byWeek).sort((a, b) => a.week.localeCompare(b.week));
+
+  const topProducts = [...state.products]
+    .filter((p) => (p.soldCount || 0) > 0)
+    .sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0))
+    .slice(0, 8)
+    .map((p) => ({ name: p.name, sku: p.sku, units: p.soldCount || 0 }));
+
+  const totalUnits = state.products.reduce((a, p) => a + (p.soldCount || 0), 0);
+  const totalRevenue = state.sales.reduce((a, s) => {
+    const product = state.products.find((p) => p.id === s.productId);
+    return a + (s.dealValue || (product ? product.price * s.quantity : 0));
+  }, 0);
+  const totalXp = state.accounts.filter((a) => a.role === "manager").reduce((a, m) => a + m.xp, 0);
+  const totalCoinsAwarded = state.sales.reduce((a, s) => a + s.coinsEarned, 0);
+  const totalCashPaid = state.sales.reduce((a, s) => a + (s.cashEarned || 0), 0);
+  const totalDeals = state.sales.length;
+
+  res.json({ salesByWeek, topProducts, totalUnits, totalRevenue, totalXp, totalCoinsAwarded, totalCashPaid, totalDeals });
+});
+
 module.exports = router;

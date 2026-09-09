@@ -99,6 +99,8 @@ export interface QuestCardData {
   xpReward: number;
   coinReward: number;
   cashBonus: number;
+  daysInStock: number;
+  mySold: number;
 }
 
 // ---------------------------------------------------------------------------

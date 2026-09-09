@@ -1,12 +1,10 @@
-import { LayoutGrid, Trophy } from "lucide-react";
+import { BarChart3, LayoutGrid, ListChecks, Package, Trophy } from "lucide-react";
 import type { Manager } from "../../types/sales";
 import { levelFromXp } from "../../types/sales";
 import { useLanguage } from "../../i18n/LanguageContext";
 import { Progress } from "../ui/Progress";
 
-// Manager-facing app has exactly two areas — the Admin/ROP surface lives in
-// a completely separate shell (see AdminApp.tsx), not as a tab here.
-export type TabId = "quests" | "arena";
+export type TabId = "quests" | "missions" | "products" | "arena" | "analytics";
 
 interface NavBarProps {
   active: TabId;
@@ -18,7 +16,10 @@ export function SideNav({ active, onChange, manager }: NavBarProps) {
   const { t } = useLanguage();
   const TABS: { id: TabId; label: string; icon: typeof LayoutGrid }[] = [
     { id: "quests", label: t("navQuests"), icon: LayoutGrid },
+    { id: "missions", label: t("navMissions"), icon: ListChecks },
+    { id: "products", label: t("navProducts"), icon: Package },
     { id: "arena", label: t("navArena"), icon: Trophy },
+    { id: "analytics", label: t("navAnalytics"), icon: BarChart3 },
   ];
 
   const level = manager ? levelFromXp(manager.xp) : null;
@@ -68,7 +69,10 @@ export function BottomNav({ active, onChange }: NavBarProps) {
   const { t } = useLanguage();
   const TABS: { id: TabId; label: string; icon: typeof LayoutGrid }[] = [
     { id: "quests", label: t("navQuests"), icon: LayoutGrid },
+    { id: "missions", label: t("navMissions"), icon: ListChecks },
+    { id: "products", label: t("navProducts"), icon: Package },
     { id: "arena", label: t("navArena"), icon: Trophy },
+    { id: "analytics", label: t("navAnalytics"), icon: BarChart3 },
   ];
 
   return (
@@ -77,11 +81,11 @@ export function BottomNav({ active, onChange }: NavBarProps) {
         <button
           key={tab.id}
           onClick={() => onChange(tab.id)}
-          className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-semibold transition-colors ${
+          className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[9px] font-semibold transition-colors ${
             active === tab.id ? "text-cyan-300" : "text-[#8B98A9]"
           }`}
         >
-          <tab.icon className="h-5 w-5" /> {tab.label}
+          <tab.icon className="h-4.5 w-4.5" /> {tab.label}
         </button>
       ))}
     </nav>

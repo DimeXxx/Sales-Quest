@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { Suspense, lazy, useState } from "react";
 import { Clock, FileSpreadsheet, LayoutDashboard, LogOut, Package, RotateCcw, Shield, Target, TrendingUp, Users } from "lucide-react";
+import { BarChart3 } from "lucide-react";
 import { useLanguage } from "../../i18n/LanguageContext";
 import { useToasts } from "../../hooks/useToasts";
 import { useAdminState } from "../../hooks/useAdminState";
@@ -12,7 +13,9 @@ import { ResetPanel } from "./ResetPanel";
 import { PendingApprovalsPanel } from "./PendingApprovalsPanel";
 import { SalesReportPanel } from "./SalesReportPanel";
 
-type AdminSection = "overview" | "pending" | "products" | "bossfights" | "managers" | "reports" | "reset";
+const AdminAnalytics = lazy(() => import("./AdminAnalytics").then((m) => ({ default: m.AdminAnalytics })));
+
+type AdminSection = "overview" | "pending" | "products" | "bossfights" | "managers" | "reports" | "analytics" | "reset";
 
 interface AdminAppProps {
   managerName: string;
@@ -42,6 +45,7 @@ export function AdminApp({ managerName, logout }: AdminAppProps) {
     { id: "bossfights", label: t("adminNavBossFights"), icon: Target },
     { id: "managers", label: t("adminNavManagers"), icon: Users },
     { id: "reports", label: t("salesReport"), icon: FileSpreadsheet },
+    { id: "analytics", label: t("adminNavAnalytics"), icon: BarChart3 },
     { id: "reset", label: t("adminNavReset"), icon: RotateCcw },
   ];
 
@@ -149,6 +153,12 @@ export function AdminApp({ managerName, logout }: AdminAppProps) {
         )}
 
         {section === "reports" && <SalesReportPanel products={admin.salesReport.products} managers={admin.salesReport.managers} />}
+
+        {section === "analytics" && (
+          <Suspense fallback={<div className="py-10 text-center text-sm text-[#8B98A9]">Loading…</div>}>
+            <AdminAnalytics />
+          </Suspense>
+        )}
 
         {section === "reset" && (
           <ResetPanel
