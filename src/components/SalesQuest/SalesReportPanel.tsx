@@ -10,7 +10,7 @@ interface SalesReportPanelProps {
 
 export function SalesReportPanel({ products, managers }: SalesReportPanelProps) {
   const { t } = useLanguage();
-  const totalPaid = products.reduce((a, p) => a + p.totalCashPaid, 0);
+  const totalPaid = products.reduce((a, p) => a + (p.totalCashPaid ?? 0), 0);
 
   return (
     <div className="space-y-6">
@@ -39,10 +39,7 @@ export function SalesReportPanel({ products, managers }: SalesReportPanelProps) 
                 <tr key={p.productId} className="border-b border-white/5 last:border-0">
                   <td className="px-4 py-3 font-semibold text-slate-200">{p.name}</td>
                   <td className="px-4 py-3 font-mono text-slate-500">{p.sku}</td>
-                  <td className="px-4 py-3 font-mono font-bold text-emerald-300">{p.soldCount}</td>
-                  <td className="px-4 py-3 font-mono text-slate-400">{p.stock}/{p.initialStock}</td>
-                  <td className="px-4 py-3 font-mono text-slate-400">${p.cashBonusPerUnit.toFixed(2)}</td>
-                  <td className="px-4 py-3 font-mono font-bold text-amber-300">${p.totalCashPaid.toFixed(2)}</td>
+                  <p className="font-mono text-lg font-bold text-amber-300">${m.totalCashBonus.toFixed(2)}</p>
                 </tr>
               ))}
             </tbody>
@@ -65,7 +62,7 @@ export function SalesReportPanel({ products, managers }: SalesReportPanelProps) 
                 <p className="text-sm font-semibold text-slate-200">{m.name}</p>
                 <p className="text-[11px] text-slate-500">{m.questsCompleted} продаж</p>
               </div>
-              <p className="font-mono text-lg font-bold text-amber-300">${m.totalCashBonus.toFixed(2)}</p>
+              <p className="font-mono text-lg font-bold text-amber-300">${(m.totalCashBonus ?? 0).toFixed(2)}</p>
             </Card>
           ))}
         </div>
