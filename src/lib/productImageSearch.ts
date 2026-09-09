@@ -54,7 +54,15 @@ const KEYWORD_PATTERNS: { pattern: RegExp; query: string }[] = [
   { pattern: /nvr|видеорегистратор|регистратор/i, query: CATEGORY_QUERY.nvr },
   { pattern: /access\s*control|контрол[ьяию].*доступ|keypad|access\s*terminal/i, query: CATEGORY_QUERY["access control"] },
   { pattern: /hdd|hard\s*disk|storage|жёстк|жестк|диск/i, query: CATEGORY_QUERY.storage },
-  { pattern: /camera|видеокамер|камера|ipc\b/i, query: CATEGORY_QUERY["ip camera"] },
+  {
+    // Camera detection is broad on purpose: wholesale/Excel-imported catalogs
+    // rarely spell out "camera" — model codes (DS-2CV/DS-2CD/IPC-), a
+    // resolution spec (1080P/2MP/4MP), or "bullet"/"dome"/"indoor Wi-Fi" are
+    // just as reliable a signal here, and every match still only ever
+    // produces the one fixed, vetted query below.
+    pattern: /camera|видеокамер|камера|ipc[-\s]|ds-2c[dv]|bullet|dome\b|colorvu|\d\s*mp\b|1080p|2k\b|4k\b/i,
+    query: CATEGORY_QUERY["ip camera"],
+  },
 ];
 
 function resolveQuery(name: string, category?: string): string | null {
@@ -91,8 +99,14 @@ async function fetchWithTimeout(url: string, ms: number): Promise<Response> {
 async function searchCommonsOnce(query: string): Promise<string | null> {
   const endpoint =
     "https://commons.wikimedia.org/w/api.php" +
-    "?action=query&generator=search&gsrnamespace=6&gsrlimit=5" +
-    `&gsrsearch=${encodeURIComponent(`"${query}" filetype:bitmap`)}` +
+    "?action=query&generator=search&gsrnamespace=6&gsrlimit=10" +
+    // No surrounding quotes: an exact-phrase match is too strict and can
+    // return zero hits for a perfectly reasonable query, which — because
+    // results are cached per query — then silently blanks the placeholder
+    // for every product sharing that category. A normal all-terms search
+    // still only ever runs one of our fixed, vetted queries (see
+    // CATEGORY_QUERY), so it's just as safe, only less brittle.
+    `&gsrsearch=${encodeURIComponent(`${query} filetype:bitmap`)}` +
     "&prop=imageinfo&iiprop=url|size&iiurlwidth=600" +
     "&format=json&origin=*";
 
