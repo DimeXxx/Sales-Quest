@@ -39,7 +39,10 @@ export function SalesReportPanel({ products, managers }: SalesReportPanelProps) 
                 <tr key={p.productId} className="border-b border-white/5 last:border-0">
                   <td className="px-4 py-3 font-semibold text-slate-200">{p.name}</td>
                   <td className="px-4 py-3 font-mono text-slate-500">{p.sku}</td>
-                  <p className="font-mono text-lg font-bold text-amber-300">${m.totalCashBonus.toFixed(2)}</p>
+                  <td className="px-4 py-3 font-mono font-bold text-emerald-300">{p.soldCount ?? 0}</td>
+                  <td className="px-4 py-3 font-mono text-slate-400">{p.stock}/{p.initialStock}</td>
+                  <td className="px-4 py-3 font-mono text-slate-400">${(p.cashBonusPerUnit ?? 0).toFixed(2)}</td>
+                  <td className="px-4 py-3 font-mono font-bold text-amber-300">${(p.totalCashPaid ?? 0).toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>
