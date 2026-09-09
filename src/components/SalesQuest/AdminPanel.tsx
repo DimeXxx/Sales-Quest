@@ -1,4 +1,4 @@
-import { Skull, Sparkles } from "lucide-react";
+import { Target } from "lucide-react";
 import { useLanguage } from "../../i18n/LanguageContext";
 import type { BossFight, Priority } from "../../types/sales";
 import type { ParsedProductRow } from "../../lib/excelImport";
@@ -81,27 +81,27 @@ export function AdminPanel({
       {!hideBossFights && (
         <div>
           <h2 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-400">
-            <Skull className="h-4 w-4 text-rose-400" /> {t("bossFights")}
+            <Target className="h-4 w-4 text-cyan-400" /> {t("bossFights")}
           </h2>
           <div className="grid gap-3 sm:grid-cols-2">
             {bossFights.map((bf) => (
               <Card key={bf.id} interactive className="p-4">
                 <div className="mb-2 flex items-center justify-between">
-                  <p className="text-sm font-bold text-slate-100">{bf.title}</p>
-                  <span className={`text-[10px] font-bold uppercase ${bf.active ? "text-emerald-400" : "text-slate-500"}`}>
+                  <p className="text-sm font-bold text-[#F5F7FA]">{bf.title}</p>
+                  <span className={`text-[10px] font-bold uppercase ${bf.active ? "text-emerald-400" : "text-[#8B98A9]"}`}>
                     {bf.active ? t("active") : t("inactive")}
                   </span>
                 </div>
-                <p className="mb-3 text-xs text-slate-500">{bf.description}</p>
-                <div className="mb-1 flex justify-between text-xs text-slate-400">
+                <p className="mb-3 text-xs text-[#8B98A9]">{bf.description}</p>
+                <div className="mb-1 flex justify-between text-xs text-[#8B98A9]">
                   <span>{t("target")}: {bf.targetQuantity} units</span>
                   <span>{bf.currentQuantity}/{bf.targetQuantity}</span>
                 </div>
-                <Progress value={(bf.currentQuantity / bf.targetQuantity) * 100} colorClassName="bg-gradient-to-r from-rose-500 to-rose-400" glowColor="#F43F5E" />
+                <Progress value={(bf.currentQuantity / bf.targetQuantity) * 100} colorClassName="bg-cyan-400" />
                 <div className="mt-3 flex items-center justify-between">
-                  <span className="text-xs text-slate-400">{t("bossFightReward")}: {bf.reward}</span>
+                  <span className="text-xs text-[#8B98A9]">{t("bossFightReward")}: {bf.reward}</span>
                   <Button size="sm" variant={bf.active ? "secondary" : "primary"} onClick={() => onToggleBossFight(bf.id)}>
-                    <Sparkles className="h-3.5 w-3.5" /> {bf.active ? t("deactivate") : t("activate")}
+                    {bf.active ? t("deactivate") : t("activate")}
                   </Button>
                 </div>
               </Card>

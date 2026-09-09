@@ -3,24 +3,24 @@ interface ProgressProps {
   colorClassName?: string; // tailwind bg-* class for the fill
   trackClassName?: string;
   className?: string;
-  height?: string; // tailwind height class, e.g. "h-2"
-  glowColor?: string; // hex used for a soft drop-shadow glow on the fill
+  height?: string; // tailwind height class, e.g. "h-1.5"
 }
 
+// Clean, thin progress bar — no glow filter. A premium SaaS product signals
+// progress through crisp contrast, not light bloom.
 export function Progress({
   value,
-  colorClassName = "bg-emerald-400",
-  trackClassName = "bg-slate-800/80",
+  colorClassName = "bg-cyan-400",
+  trackClassName = "bg-white/[0.06]",
   className = "",
-  height = "h-2",
-  glowColor,
+  height = "h-1.5",
 }: ProgressProps) {
   const clamped = Math.max(0, Math.min(100, value));
   return (
     <div className={`w-full overflow-hidden rounded-full ${height} ${trackClassName} ${className}`}>
       <div
-        className={`h-full rounded-full transition-all duration-700 ease-out ${colorClassName}`}
-        style={{ width: `${clamped}%`, filter: glowColor ? `drop-shadow(0 0 6px ${glowColor})` : undefined }}
+        className={`h-full rounded-full transition-all duration-200 ease-out ${colorClassName}`}
+        style={{ width: `${clamped}%` }}
       />
     </div>
   );

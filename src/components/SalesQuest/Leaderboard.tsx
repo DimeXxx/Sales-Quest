@@ -5,12 +5,11 @@ import { Progress } from "../ui/Progress";
 import { useLanguage } from "../../i18n/LanguageContext";
 import { useAuth } from "../../auth/AuthContext";
 
-const MEDALS = ["🥇", "🥈", "🥉"];
-
 interface LeaderboardProps {
   managers: Manager[]; // already sorted desc by XP
 }
 
+/** Professional sales ranking — small rank numbers, no crowns/medals/gold gradients. */
 export function Leaderboard({ managers }: LeaderboardProps) {
   const { t } = useLanguage();
   const { account } = useAuth();
@@ -24,73 +23,53 @@ export function Leaderboard({ managers }: LeaderboardProps) {
 
   return (
     <div className="grid gap-5 lg:grid-cols-5">
-      <div className="space-y-2.5 lg:col-span-3">
-        <h2 className="mb-1 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-400">
-          <Trophy className="h-4 w-4 text-amber-400" /> {t("liveLeaderboard")}
+      <div className="space-y-1.5 lg:col-span-3">
+        <h2 className="mb-2 flex items-center gap-2 text-sm font-bold text-[#F5F7FA]">
+          <Trophy className="h-4 w-4 text-[#8B98A9]" /> {t("liveLeaderboard")}
         </h2>
         {top.map((m, i) => {
           const isYou = m.id === currentId;
-          const isFirst = i === 0;
           return (
-            <Card
-              key={m.id}
-              interactive
-              className={`relative flex items-center gap-3 px-4 py-3 ${
-                isFirst
-                  ? "border-amber-400/70 bg-gradient-to-r from-amber-500/10 via-slate-900/60 to-slate-900/60 shadow-lg shadow-amber-950/30"
-                  : isYou
-                  ? "border-violet-500/40 bg-violet-500/[0.06]"
-                  : ""
-              }`}
-            >
-              {isFirst && (
-                <span className="absolute -top-2.5 left-4 flex items-center gap-1 rounded-full border border-amber-400/60 bg-slate-950 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-amber-300 shadow-md shadow-amber-950/40">
-                  👑 Top Hunter
-                </span>
-              )}
-              <div className="flex h-9 w-9 items-center justify-center text-lg">
-                {MEDALS[i] ?? <span className="text-sm font-bold text-slate-500">{i + 1}</span>}
-              </div>
-              <div
-                className={`flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-slate-700 to-slate-800 text-xs font-bold ${
-                  isFirst ? "ring-2 ring-amber-400/70" : ""
-                }`}
-              >
+            <Card key={m.id} interactive className={`flex items-center gap-3 px-4 py-2.5 ${isYou ? "border-cyan-400/30" : ""}`}>
+              <span className="w-5 text-center font-mono text-xs font-bold text-[#8B98A9]">{String(i + 1).padStart(2, "0")}</span>
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-[11px] font-bold text-[#F5F7FA]">
                 {m.avatar}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-slate-100">
-                  {m.name} {isYou && <span className="ml-1 rounded-full bg-violet-500/20 px-1.5 py-0.5 text-[9px] font-bold text-violet-300">{t("you")}</span>}
+                <p className="truncate text-[13px] font-semibold text-[#F5F7FA]">
+                  {m.name} {isYou && <span className="ml-1 rounded-md bg-cyan-400/15 px-1.5 py-0.5 text-[9px] font-bold text-cyan-300">{t("you")}</span>}
                 </p>
-                <p className="text-[11px] text-slate-500">Level {m.level} · {m.questsCompleted} {t("questsCompleted")}</p>
+                <div className="mt-1 h-1 w-24 overflow-hidden rounded-full bg-white/[0.06]">
+                  <div className="h-full rounded-full bg-cyan-400" style={{ width: `${leader ? (m.xp / leader.xp) * 100 : 0}%` }} />
+                </div>
               </div>
-              <p className={`font-mono text-sm font-bold ${isFirst ? "text-amber-300" : "text-violet-300"}`}>{m.xp.toLocaleString()} XP</p>
+              <p className="font-mono text-sm font-semibold text-[#F5F7FA]">{m.xp.toLocaleString()} XP</p>
             </Card>
           );
         })}
       </div>
 
       <div className="lg:col-span-2">
-        <h2 className="mb-1 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-400">
-          <Target className="h-4 w-4 text-emerald-400" /> {t("yourPerformance")}
+        <h2 className="mb-2 flex items-center gap-2 text-sm font-bold text-[#F5F7FA]">
+          <Target className="h-4 w-4 text-[#8B98A9]" /> {t("yourPerformance")}
         </h2>
         <Card className="p-4">
-          <p className="text-xs text-slate-500">{t("yourRank")}</p>
-          <p className="text-3xl font-black text-slate-50">#{youRank || "—"}</p>
+          <p className="text-xs text-[#8B98A9]">{t("yourRank")}</p>
+          <p className="text-2xl font-bold text-[#F5F7FA]">#{youRank || "—"}</p>
 
           {xpToFirst > 0 ? (
             <>
-              <p className="mt-3 text-xs text-slate-500">{t("toFirstPlace")}</p>
-              <p className="mb-1.5 font-mono text-sm font-bold text-amber-300">{xpToFirst.toLocaleString()} XP</p>
-              <Progress value={(you.xp / (leader?.xp || 1)) * 100} colorClassName="bg-gradient-to-r from-amber-400 to-amber-300" glowColor="#FBBF24" />
+              <p className="mt-3 text-xs text-[#8B98A9]">{t("toFirstPlace")}</p>
+              <p className="mb-1.5 font-mono text-sm font-semibold text-[#F5F7FA]">{xpToFirst.toLocaleString()} XP</p>
+              <Progress value={(you.xp / (leader?.xp || 1)) * 100} colorClassName="bg-cyan-400" />
             </>
           ) : (
             <p className="mt-3 text-sm font-semibold text-emerald-300">{t("youAreFirst")}</p>
           )}
 
-          <div className="mt-4 space-y-2 border-t border-white/5 pt-3 text-xs text-slate-400">
-            <p>🔥 {you.streak} {t("daysStreak")}</p>
-            <p>🎯 {you.questsCompleted} {t("questsCompleted")}</p>
+          <div className="mt-4 grid grid-cols-2 gap-3 border-t border-[#223044] pt-3 text-xs text-[#8B98A9]">
+            <p><span className="font-semibold text-[#F5F7FA]">{you.streak}</span> {t("daysStreak")}</p>
+            <p><span className="font-semibold text-[#F5F7FA]">{you.questsCompleted}</span> {t("questsCompleted")}</p>
           </div>
         </Card>
       </div>

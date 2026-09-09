@@ -6,25 +6,24 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
   interactive?: boolean;
 }
 
+// Restrained accent borders only — no neon glow shadows. Gamification-related
+// cards (level, achievements) can use a hint of violet; everything else
+// stays on the neutral surface tokens so the product reads as a
+// professional dashboard first.
 const GLOW: Record<NonNullable<CardProps["glow"]>, string> = {
   none: "",
-  violet: "shadow-xl shadow-violet-950/30 border-violet-500/30",
-  amber: "shadow-xl shadow-amber-950/30 border-amber-500/50",
-  emerald: "shadow-xl shadow-emerald-950/30 border-emerald-500/50",
-  rose: "shadow-xl shadow-rose-950/30 border-rose-500/50",
-  cyan: "shadow-xl shadow-cyan-950/30 border-cyan-500/40",
+  violet: "border-violet-500/25",
+  amber: "border-amber-500/25",
+  emerald: "border-emerald-500/25",
+  rose: "border-rose-500/25",
+  cyan: "border-cyan-500/25",
 };
 
-/**
- * Glassmorphic base card used throughout the app: semi-transparent slate
- * surface, soft blur, subtle border that lights up cyan on hover unless a
- * stronger contextual glow color has already been set via `glow`.
- */
 export function Card({ children, className = "", glow = "none", interactive = false, ...rest }: CardProps) {
   return (
     <div
-      className={`rounded-2xl border border-white/[0.08] bg-[#151D2A]/90 backdrop-blur-md shadow-xl shadow-cyan-950/10 transition-all duration-300 ${
-        interactive ? "hover:border-cyan-500/40 hover:shadow-cyan-950/20" : ""
+      className={`rounded-xl border border-[#223044] bg-[#111923] transition-colors duration-150 ${
+        interactive ? "hover:border-cyan-500/30" : ""
       } ${GLOW[glow]} ${className}`}
       {...rest}
     >

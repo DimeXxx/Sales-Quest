@@ -8,28 +8,20 @@ interface BadgeProps {
   className?: string;
 }
 
+// Semantic colors per the spec: critical=red/coral, high=orange,
+// normal=green. Kept as quiet solid-fill chips (uppercase label), not
+// glowing outline pills — reads as a status tag on an enterprise dashboard.
 const TONES: Record<NonNullable<BadgeProps["tone"]>, string> = {
-  critical: "bg-rose-500/10 text-rose-400 border-rose-500/20",
-  high: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-  normal: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  neutral: "bg-white/5 text-slate-300 border-white/10",
-  success: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-};
-
-const DOT_TONES: Record<NonNullable<BadgeProps["tone"]>, string> = {
-  critical: "bg-rose-400",
-  high: "bg-amber-400",
-  normal: "bg-emerald-400",
-  neutral: "bg-slate-400",
-  success: "bg-emerald-400",
+  critical: "bg-rose-500/15 text-rose-300",
+  high: "bg-orange-500/15 text-orange-300",
+  normal: "bg-emerald-500/15 text-emerald-300",
+  neutral: "bg-white/[0.06] text-[#8B98A9]",
+  success: "bg-emerald-500/15 text-emerald-300",
 };
 
 export function Badge({ children, tone = "neutral", className = "" }: BadgeProps) {
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${TONES[tone]} ${className}`}
-    >
-      <span className={`h-1.5 w-1.5 rounded-full ${DOT_TONES[tone]}`} />
+    <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${TONES[tone]} ${className}`}>
       {children}
     </span>
   );

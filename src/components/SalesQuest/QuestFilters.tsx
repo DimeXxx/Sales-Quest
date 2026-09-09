@@ -23,10 +23,10 @@ export function QuestFilters({ value, onChange }: QuestFiltersProps) {
         <button
           key={f.id}
           onClick={() => onChange(f.id)}
-          className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-all ${
+          className={`rounded-lg border px-3.5 py-1.5 text-xs font-semibold transition-colors ${
             value === f.id
-              ? "border-slate-100 bg-slate-100 text-slate-950"
-              : "border-white/10 bg-white/5 text-slate-400 hover:border-white/20 hover:text-slate-200"
+              ? "border-cyan-400/40 bg-cyan-400/10 text-cyan-300"
+              : "border-[#223044] bg-transparent text-[#8B98A9] hover:border-[#2D3E54] hover:text-[#F5F7FA]"
           }`}
         >
           {f.label}

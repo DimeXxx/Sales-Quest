@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { LogIn, UserPlus, Zap } from "lucide-react";
+import { LayoutGrid, LogIn, UserPlus } from "lucide-react";
 import { useAuth } from "../../auth/AuthContext";
 import { useLanguage } from "../../i18n/LanguageContext";
 import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
 import { LanguageSwitcher } from "../ui/LanguageSwitcher";
-import { BgDecor } from "../ui/BgDecor";
 
 export function LoginScreen() {
   const { login, register } = useAuth();
@@ -43,30 +42,29 @@ export function LoginScreen() {
   };
 
   const field =
-    "w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-sm text-slate-100 outline-none placeholder:text-slate-600 focus:border-cyan-400";
+    "w-full rounded-lg border border-[#223044] bg-white/[0.02] px-3.5 py-2.5 text-sm text-[#F5F7FA] outline-none placeholder:text-[#8B98A9] focus:border-cyan-400";
 
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[#0B0F17] px-4 text-slate-100">
-      <BgDecor />
-      <div className="absolute right-5 top-5 z-10">
+    <div className="flex min-h-screen w-full items-center justify-center bg-[#0B1119] px-4 text-[#F5F7FA]">
+      <div className="absolute right-5 top-5">
         <LanguageSwitcher />
       </div>
 
-      <Card glow="cyan" className="relative z-10 w-full max-w-sm p-6">
+      <Card className="w-full max-w-sm p-6">
         <div className="mb-6 flex items-center gap-2.5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-300 to-violet-400 shadow-lg shadow-cyan-400/30">
-            <Zap className="h-5 w-5 text-slate-950" strokeWidth={2.5} />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-cyan-400/15">
+            <LayoutGrid className="h-4.5 w-4.5 text-cyan-300" strokeWidth={2.25} />
           </div>
           <div>
-            <p className="text-sm font-black leading-none text-slate-50">{t("appName")}</p>
-            <p className="mt-0.5 text-[10px] font-medium uppercase tracking-widest text-cyan-300/70">{t("appTagline")}</p>
+            <p className="text-sm font-bold leading-none text-[#F5F7FA]">{t("appName")}</p>
+            <p className="mt-0.5 text-[10px] text-[#8B98A9]">Stock → Focus → Sell → Earn</p>
           </div>
         </div>
 
-        <h1 className="mb-1 text-lg font-bold text-slate-50">
+        <h1 className="mb-1 text-lg font-bold text-[#F5F7FA]">
           {mode === "login" ? t("loginTitle") : t("registerTitle")}
         </h1>
-        <p className="mb-5 text-xs text-slate-500">{mode === "login" ? t("loginSubtitle") : t("registerSubtitle")}</p>
+        <p className="mb-5 text-xs text-[#8B98A9]">{mode === "login" ? t("loginSubtitle") : t("registerSubtitle")}</p>
 
         <form onSubmit={submit} className="space-y-3">
           {mode === "register" && (
@@ -107,19 +105,19 @@ export function LoginScreen() {
             setMode(mode === "login" ? "register" : "login");
             setError("");
           }}
-          className="mt-4 w-full text-center text-xs font-semibold text-slate-500 hover:text-cyan-300"
+          className="mt-4 w-full text-center text-xs font-semibold text-[#8B98A9] hover:text-cyan-300"
         >
           {mode === "login" ? t("switchToRegister") : t("switchToLogin")}
         </button>
 
         {mode === "login" && (
-          <div className="mt-5 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-600">{t("demoAccountsHint")}</p>
-            <p className="mt-1 text-[11px] text-slate-500">alexei@qgroup.demo · dmitri@qgroup.demo · olga@qgroup.demo (РОП)</p>
+          <div className="mt-5 rounded-lg border border-[#223044] bg-white/[0.02] p-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-[#8B98A9]">{t("demoAccountsHint")}</p>
+            <p className="mt-1 text-[11px] text-[#8B98A9]">alexei@qgroup.demo · dmitri@qgroup.demo · olga@qgroup.demo (РОП)</p>
           </div>
         )}
         {mode === "register" && (
-          <p className="mt-4 text-center text-[11px] text-slate-600">{t("pendingHint")}</p>
+          <p className="mt-4 text-center text-[11px] text-[#8B98A9]">{t("pendingHint")}</p>
         )}
       </Card>
     </div>
