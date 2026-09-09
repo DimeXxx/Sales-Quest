@@ -91,9 +91,13 @@ export function InventoryTable({ rows, onRemove, onUpdateCashBonus, onUpdate }: 
   return (
     <Card className="overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[960px] text-left text-sm">
+        {/* Actions column is FIRST (not sticky-right) — avoids the overlap bug
+            that sticky positioning caused when the table is wider than its
+            container, and means edit/delete never need horizontal scroll. */}
+        <table className="w-full min-w-[880px] text-left text-sm">
           <thead>
             <tr className="border-b border-white/5 text-[11px] uppercase tracking-wide text-slate-500">
+              <th className="px-3 py-3" />
               <th className="px-4 py-3 font-semibold">Product</th>
               <th className="px-4 py-3 font-semibold">SKU</th>
               <th className="px-4 py-3 font-semibold">Price</th>
@@ -103,7 +107,6 @@ export function InventoryTable({ rows, onRemove, onUpdateCashBonus, onUpdate }: 
               <th className="px-4 py-3 font-semibold">XP</th>
               <th className="px-4 py-3 font-semibold">Coins</th>
               <th className="px-4 py-3 font-semibold">$ {t("cashBonusPerUnit")}</th>
-              <th className="sticky right-0 bg-[#151D2A] px-4 py-3" />
             </tr>
           </thead>
           <tbody>
@@ -115,6 +118,16 @@ export function InventoryTable({ rows, onRemove, onUpdateCashBonus, onUpdate }: 
               if (isEditing && editDraft) {
                 return (
                   <tr key={r.focusProductId} className="border-b border-cyan-500/20 bg-cyan-500/[0.03] last:border-0">
+                    <td className="px-3 py-2">
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => saveEdit(r.focusProductId)} className="flex h-7 w-7 items-center justify-center rounded-md bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25">
+                          <Check className="h-3.5 w-3.5" />
+                        </button>
+                        <button onClick={cancelEdit} className="flex h-7 w-7 items-center justify-center rounded-md bg-white/5 text-slate-400 hover:bg-white/10">
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </td>
                     <td className="px-4 py-2">
                       <div className="flex items-center gap-2">
                         <ProductImage name={r.name} category={r.category} src={r.imageUrl ?? undefined} className="h-8 w-8 shrink-0 rounded-lg object-cover" />
@@ -135,22 +148,25 @@ export function InventoryTable({ rows, onRemove, onUpdateCashBonus, onUpdate }: 
                     <td className="px-4 py-2"><input className={field} type="number" value={editDraft.xpReward} onChange={(e) => setEditDraft((d) => d && { ...d, xpReward: e.target.value })} /></td>
                     <td className="px-4 py-2"><input className={field} type="number" value={editDraft.coinReward} onChange={(e) => setEditDraft((d) => d && { ...d, coinReward: e.target.value })} /></td>
                     <td className="px-4 py-2"><input className={field} type="number" step="0.01" value={editDraft.cashBonus} onChange={(e) => setEditDraft((d) => d && { ...d, cashBonus: e.target.value })} /></td>
-                    <td className="sticky right-0 bg-cyan-500/[0.06] px-4 py-2 backdrop-blur-sm">
-                      <div className="flex items-center gap-1">
-                        <button onClick={() => saveEdit(r.focusProductId)} className="flex h-7 w-7 items-center justify-center rounded-md bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25">
-                          <Check className="h-3.5 w-3.5" />
-                        </button>
-                        <button onClick={cancelEdit} className="flex h-7 w-7 items-center justify-center rounded-md bg-white/5 text-slate-400 hover:bg-white/10">
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </td>
                   </tr>
                 );
               }
 
               return (
                 <tr key={r.focusProductId} className="border-b border-white/5 last:border-0">
+                  <td className="px-3 py-3">
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => startEdit(r)} className="flex h-7 w-7 items-center justify-center rounded-md bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20">
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      <button onClick={() => onRemove(r.focusProductId)} className="flex h-7 w-7 items-center justify-center rounded-md bg-rose-500/10 text-rose-400 hover:bg-rose-500/20" title="Скрыть из квестов">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                      <ConfirmButton onConfirm={() => onRemove(r.focusProductId, true)} variant="danger" size="sm" className="!p-1.5">
+                        <X className="h-3.5 w-3.5" />
+                      </ConfirmButton>
+                    </div>
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
                       <ProductImage name={r.name} category={r.category} src={r.imageUrl ?? undefined} className="h-9 w-9 shrink-0 rounded-lg object-cover" />
@@ -181,19 +197,6 @@ export function InventoryTable({ rows, onRemove, onUpdateCashBonus, onUpdate }: 
                           <Check className="h-3.5 w-3.5" />
                         </button>
                       )}
-                    </div>
-                  </td>
-                  <td className="sticky right-0 bg-[#151D2A] px-4 py-3 backdrop-blur-sm">
-                    <div className="flex items-center gap-1.5">
-                      <button onClick={() => startEdit(r)} className="flex h-7 w-7 items-center justify-center rounded-md bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20">
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                      <button onClick={() => onRemove(r.focusProductId)} className="flex h-7 w-7 items-center justify-center rounded-md bg-rose-500/10 text-rose-400 hover:bg-rose-500/20" title="Скрыть из квестов">
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                      <ConfirmButton onConfirm={() => onRemove(r.focusProductId, true)} variant="danger" size="sm" className="!p-1.5">
-                        <X className="h-3.5 w-3.5" />
-                      </ConfirmButton>
                     </div>
                   </td>
                 </tr>

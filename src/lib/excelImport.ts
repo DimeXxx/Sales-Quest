@@ -32,10 +32,24 @@ function normalizeHeader(h: string): string {
   return h.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+/** Parses a number from a cell that might contain currency symbols, commas, or spaces (e.g. "$189", "1 200", "189,00"). */
+function parseNumber(value: unknown): number {
+  if (typeof value === "number") return value;
+  const cleaned = String(value ?? "").replace(/[^0-9.,-]/g, "").replace(",", ".");
+  const n = Number(cleaned);
+  return Number.isFinite(n) ? n : 0;
+}
+
 function findColumn(headers: string[], aliases: string[]): string | undefined {
   const normalized = headers.map(normalizeHeader);
+  // Exact match first (most reliable), then fall back to "header contains
+  // alias" so variants like "Цена, $" or "Price (USD)" still match "цена"/"price".
   for (const alias of aliases) {
     const idx = normalized.indexOf(alias);
+    if (idx !== -1) return headers[idx];
+  }
+  for (const alias of aliases) {
+    const idx = normalized.findIndex((h) => h.includes(alias));
     if (idx !== -1) return headers[idx];
   }
   return undefined;
@@ -75,11 +89,11 @@ export async function parseProductsWorkbook(file: File): Promise<{ rows: ParsedP
     const sku = colMap.sku ? String(r[colMap.sku] ?? "").trim() : "";
     const description = colMap.description ? String(r[colMap.description] ?? "").trim() : "";
     const category = colMap.category ? String(r[colMap.category] ?? "").trim() : "General";
-    const price = colMap.price ? Number(r[colMap.price]) || 0 : 0;
-    const stock = colMap.stock ? Number(r[colMap.stock]) || 0 : 0;
-    const stockAgeDays = colMap.stockAgeDays ? Number(r[colMap.stockAgeDays]) || 0 : 0;
-    const marginPercent = colMap.marginPercent ? Number(r[colMap.marginPercent]) || 0 : 0;
-    const cashBonus = colMap.cashBonus ? Number(r[colMap.cashBonus]) || 0 : 0;
+    const price = colMap.price ? parseNumber(r[colMap.price]) : 0;
+    const stock = colMap.stock ? parseNumber(r[colMap.stock]) : 0;
+    const stockAgeDays = colMap.stockAgeDays ? parseNumber(r[colMap.stockAgeDays]) : 0;
+    const marginPercent = colMap.marginPercent ? parseNumber(r[colMap.marginPercent]) : 0;
+    const cashBonus = colMap.cashBonus ? parseNumber(r[colMap.cashBonus]) : 0;
 
     const priority = guessPriority(stock, marginPercent);
     const valid = Boolean(name && stock >= 0);
