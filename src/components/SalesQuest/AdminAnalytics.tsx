@@ -1,5 +1,5 @@
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { Coins, DollarSign, Package, Receipt } from "lucide-react";
+import { Coins, DollarSign, Package, Receipt, Users } from "lucide-react";
 import { useCompanyAnalytics } from "../../hooks/useCompanyAnalytics";
 import { useLanguage } from "../../i18n/LanguageContext";
 import { Card } from "../ui/Card";
@@ -9,7 +9,7 @@ const CHART_TICK = { fill: "#8B98A9", fontSize: 11 };
 
 export function AdminAnalytics() {
   const { t } = useLanguage();
-  const { salesByWeek, topProducts, totalUnits, totalRevenue, totalCoinsAwarded, totalCashPaid, totalDeals, loading } = useCompanyAnalytics();
+  const { salesByWeek, topProducts, byManager, totalUnits, totalRevenue, totalCoinsAwarded, totalCashPaid, totalDeals, loading } = useCompanyAnalytics();
   const hasData = salesByWeek.length > 0;
 
   return (
@@ -60,6 +60,53 @@ export function AdminAnalytics() {
                   <Bar dataKey="units" fill="#A78BFA" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
+            </div>
+          </Card>
+
+          <Card className="p-4">
+            <h2 className="mb-3 flex items-center gap-2 text-sm font-bold text-[#F5F7FA]">
+              <Users className="h-4 w-4 text-cyan-300" /> Продажи по менеджерам
+            </h2>
+            <div className="h-56 w-full">
+              <ResponsiveContainer>
+                <BarChart data={byManager} layout="vertical" margin={{ left: 24 }}>
+                  <CartesianGrid stroke={CHART_GRID} strokeDasharray="3 3" horizontal={false} />
+                  <XAxis type="number" tick={CHART_TICK} axisLine={false} tickLine={false} />
+                  <YAxis type="category" dataKey="name" tick={{ ...CHART_TICK, fontSize: 10 }} width={110} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ background: "#111923", border: "1px solid #223044", borderRadius: 8, fontSize: 12 }} />
+                  <Bar dataKey="revenue" fill="#22D3EE" radius={[0, 4, 4, 0]} name="Оборот $" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full min-w-[560px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-[#223044] text-[11px] uppercase tracking-wide text-[#8B98A9]">
+                    <th className="px-3 py-2 font-semibold">Менеджер</th>
+                    <th className="px-3 py-2 font-semibold">Сделок</th>
+                    <th className="px-3 py-2 font-semibold">Юнитов</th>
+                    <th className="px-3 py-2 font-semibold">Оборот $</th>
+                    <th className="px-3 py-2 font-semibold">XP</th>
+                    <th className="px-3 py-2 font-semibold">Coins</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {byManager.map((m) => (
+                    <tr key={m.accountId} className="border-b border-[#223044] last:border-0">
+                      <td className="px-3 py-2 font-semibold text-[#F5F7FA]">{m.name}</td>
+                      <td className="px-3 py-2 font-mono text-[#F5F7FA]">{m.deals}</td>
+                      <td className="px-3 py-2 font-mono text-[#F5F7FA]">{m.units}</td>
+                      <td className="px-3 py-2 font-mono text-emerald-300">${m.revenue.toLocaleString()}</td>
+                      <td className="px-3 py-2 font-mono text-violet-300">{m.xpEarned}</td>
+                      <td className="px-3 py-2 font-mono text-amber-300">{m.coinsEarned}</td>
+                    </tr>
+                  ))}
+                  {byManager.length === 0 && (
+                    <tr><td colSpan={6} className="px-3 py-4 text-center text-xs text-[#8B98A9]">Пока нет продаж</td></tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </Card>
 

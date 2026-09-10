@@ -2,9 +2,20 @@ import { useCallback, useEffect, useState } from "react";
 import { api } from "../lib/api";
 import type { WeeklyStat, ProductStat } from "./useMyAnalytics";
 
+export interface ManagerStat {
+  accountId: string;
+  name: string;
+  units: number;
+  revenue: number;
+  deals: number;
+  xpEarned: number;
+  coinsEarned: number;
+}
+
 export interface CompanyAnalytics {
   salesByWeek: (WeeklyStat & { revenue: number })[];
   topProducts: ProductStat[];
+  byManager: ManagerStat[];
   totalUnits: number;
   totalRevenue: number;
   totalXp: number;
@@ -16,6 +27,7 @@ export interface CompanyAnalytics {
 const EMPTY: CompanyAnalytics = {
   salesByWeek: [],
   topProducts: [],
+  byManager: [],
   totalUnits: 0,
   totalRevenue: 0,
   totalXp: 0,

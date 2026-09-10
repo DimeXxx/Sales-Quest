@@ -517,7 +517,28 @@ router.get("/analytics", (_req, res) => {
   const totalCashPaid = state.sales.reduce((a, s) => a + (s.cashEarned || 0), 0);
   const totalDeals = state.sales.length;
 
-  res.json({ salesByWeek, topProducts, totalUnits, totalRevenue, totalXp, totalCoinsAwarded, totalCashPaid, totalDeals });
+  const byManager = state.accounts
+    .filter((a) => a.role === "manager")
+    .map((a) => {
+      const mySales = state.sales.filter((s) => s.accountId === a.id);
+      const revenue = mySales.reduce((sum, s) => {
+        const product = state.products.find((p) => p.id === s.productId);
+        return sum + (s.dealValue || (product ? product.price * s.quantity : 0));
+      }, 0);
+      return {
+        accountId: a.id,
+        name: a.name,
+        units: mySales.reduce((sum, s) => sum + s.quantity, 0),
+        revenue,
+        deals: mySales.length,
+        xpEarned: mySales.reduce((sum, s) => sum + s.xpEarned, 0),
+        coinsEarned: mySales.reduce((sum, s) => sum + s.coinsEarned, 0),
+      };
+    })
+    .filter((m) => m.deals > 0)
+    .sort((a, b) => b.revenue - a.revenue);
+
+  res.json({ salesByWeek, topProducts, byManager, totalUnits, totalRevenue, totalXp, totalCoinsAwarded, totalCashPaid, totalDeals });
 });
 
 module.exports = router;
