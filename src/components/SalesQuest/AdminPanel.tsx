@@ -14,6 +14,7 @@ import { FocusProductForm } from "./FocusProductForm";
 import { InventoryTable } from "./InventoryTable";
 import { ExcelImportPanel } from "./ExcelImportPanel";
 import { TeamChallengeForm } from "./TeamChallengeForm";
+import { EditProductModal } from "./EditProductModal";
 
 interface AdminPanelProps {
   inventory: InventoryRow[];
@@ -80,6 +81,7 @@ export function AdminPanel({
   const { t } = useLanguage();
   const [search, setSearch] = useState("");
   const [editingBossFightId, setEditingBossFightId] = useState<string | null>(null);
+  const [editingRow, setEditingRow] = useState<InventoryRow | null>(null);
 
   const filteredInventory = useMemo(() => {
     if (!search.trim()) return inventory;
@@ -111,7 +113,7 @@ export function AdminPanel({
                 </div>
               </div>
             </div>
-            <InventoryTable rows={filteredInventory} onRemove={onRemoveFocusProduct} onUpdateCashBonus={onUpdateCashBonus} onUpdate={onUpdateFocusProduct} />
+            <InventoryTable rows={filteredInventory} onEdit={setEditingRow} onRemove={onRemoveFocusProduct} onUpdateCashBonus={onUpdateCashBonus} />
           </div>
           <div className="space-y-5 lg:col-span-2">
             <ExcelImportPanel onImport={onBulkImport} />
@@ -183,6 +185,13 @@ export function AdminPanel({
           />
         )}
       </Modal>
+
+      <EditProductModal
+        row={editingRow}
+        onClose={() => setEditingRow(null)}
+        onSave={onUpdateFocusProduct}
+        onRemove={onRemoveFocusProduct}
+      />
     </div>
   );
 }
