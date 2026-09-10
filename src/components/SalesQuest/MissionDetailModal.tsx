@@ -65,6 +65,7 @@ export function MissionDetailModal({ quest, onClose, onSell }: MissionDetailModa
         <div>
           <PriorityBadge priority={priority} />
           <p className="mt-1 text-xs text-[#8B98A9]">{product.category} · {product.sku}</p>
+          {product.description && <p className="mt-1.5 text-xs text-[#8B98A9]">{product.description}</p>}
           <p className="mt-1 text-xs text-[#8B98A9]">{product.stock} units in stock</p>
         </div>
       </div>

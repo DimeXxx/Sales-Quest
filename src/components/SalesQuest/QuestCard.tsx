@@ -39,7 +39,7 @@ export function QuestCard({ quest, pulsing, onSell }: QuestCardProps) {
         />
         <div className="min-w-0 flex-1">
           <PriorityBadge priority={priority} />
-          <p className="mt-1 truncate text-[13px] font-semibold leading-tight text-[#F5F7FA]">{product.name}</p>
+          <p className="mt-1 truncate text-[13px] font-semibold leading-tight text-[#F5F7FA]" title={product.description || undefined}>{product.name}</p>
           <p className="truncate text-[11px] text-[#8B98A9]">{product.category} · {product.sku}</p>
         </div>
       </div>

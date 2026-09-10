@@ -48,7 +48,7 @@ export function EditProductModal({ row, onClose, onSave, onRemove }: EditProduct
       name: row.name,
       sku: row.sku,
       category: row.category,
-      description: "",
+      description: row.description || "",
       price: row.price,
       stock: row.stock,
       priority: row.priority,

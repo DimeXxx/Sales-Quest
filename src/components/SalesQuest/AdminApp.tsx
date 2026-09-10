@@ -184,6 +184,7 @@ export function AdminApp({ managerName, logout }: AdminAppProps) {
             onChangeRole={admin.changeRole}
             onUpdate={admin.updateAccount}
             onDelete={admin.deleteAccount}
+            onCreate={admin.createManager}
           />
         )}
 

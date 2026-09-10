@@ -68,7 +68,12 @@ function requireAuth(req, res, next) {
 /** Use after requireAuth. Only allows the listed roles through. */
 function requireRole(...roles) {
   return (req, res, next) => {
-    if (!req.auth || !roles.includes(req.auth.role)) {
+    // Look up the CURRENT role from the account, not the role embedded in
+    // the JWT at login time — otherwise demoting/promoting someone has no
+    // effect on their already-logged-in session until they log out and
+    // back in (and worse, a demoted admin keeps admin access meanwhile).
+    const account = state.accounts.find((a) => a.id === req.auth?.id);
+    if (!account || !roles.includes(account.role)) {
       return res.status(403).json({ error: "forbidden" });
     }
     next();

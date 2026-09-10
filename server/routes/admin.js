@@ -1,7 +1,7 @@
 const express = require("express");
 const crypto = require("node:crypto");
 const { state, save } = require("../db");
-const { requireAuth, requireRole } = require("../auth");
+const { requireAuth, requireRole, hashPassword } = require("../auth");
 const { toPublicAccount } = require("./auth");
 const { notify, notifyAllManagers, logXpLedger } = require("../notify");
 
@@ -14,6 +14,41 @@ router.get("/accounts", (_req, res) => {
     .sort((a, b) => (a.status === b.status ? a.name.localeCompare(b.name) : a.status === "pending" ? -1 : 1))
     .map(toPublicAccount);
   res.json({ accounts });
+});
+
+router.post("/accounts", (req, res) => {
+  const { name, email, password, role } = req.body || {};
+  if (!name || !email || !password) return res.status(400).json({ error: "missing_fields" });
+
+  const normalizedEmail = String(email).trim().toLowerCase();
+  if (state.accounts.some((a) => a.email === normalizedEmail)) {
+    return res.status(409).json({ error: "email_taken" });
+  }
+
+  const account = {
+    id: crypto.randomUUID(),
+    name,
+    email: normalizedEmail,
+    passwordHash: hashPassword(password),
+    role: role === "rop" ? "rop" : "manager",
+    status: "approved", // admin-created accounts skip the pending queue
+    avatar: name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join(""),
+    avatarUrl: null,
+    department: "Продажи",
+    createdAt: new Date().toISOString(),
+    monthlyTarget: 0,
+    notifyPrefs: { inApp: true, email: false, telegram: false },
+    level: 1,
+    xp: 0,
+    coins: 0,
+    totalCashBonus: 0,
+    questsCompleted: 0,
+    streak: 0,
+    lastSaleDate: null,
+  };
+  state.accounts.push(account);
+  save();
+  res.status(201).json({ account: toPublicAccount(account) });
 });
 
 router.post("/accounts/:id/approve", (req, res) => {
@@ -112,6 +147,7 @@ router.get("/inventory", (_req, res) => {
         name: p.name,
         sku: p.sku,
         category: p.category,
+        description: p.description || "",
         price: p.price,
         stock: p.stock,
         initialStock: p.initialStock,

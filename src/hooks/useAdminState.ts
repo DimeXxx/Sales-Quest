@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import type { BossFight, Manager, PersonalTask, Priority, Reward } from "../types/sales";
 import type { ParsedProductRow } from "../lib/excelImport";
 import type { TeamChallengeInput } from "../components/SalesQuest/TeamChallengeForm";
-import { api } from "../lib/api";
+import { api, ApiError } from "../lib/api";
+import { useAuth } from "../auth/AuthContext";
 import type { ToastMessage } from "../components/ui/Toast";
 
 export interface InventoryRow {
@@ -15,6 +16,7 @@ export interface InventoryRow {
   name: string;
   sku: string;
   category: string;
+  description: string;
   price: number;
   stock: number;
   initialStock: number;
@@ -46,6 +48,7 @@ interface UseAdminStateArgs {
 }
 
 export function useAdminState({ pushToast }: UseAdminStateArgs) {
+  const { account: myAccount, refresh: refreshMyAccount } = useAuth();
   const [accounts, setAccounts] = useState<Manager[]>([]);
   const [inventory, setInventory] = useState<InventoryRow[]>([]);
   const [bossFights, setBossFights] = useState<BossFight[]>([]);
@@ -112,11 +115,15 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
         await api.post(`/admin/accounts/${id}/role`, { role });
         pushToast("Роль обновлена");
         await loadAll();
+        // If we just changed our OWN role, refresh AuthContext immediately —
+        // otherwise the app keeps showing the Admin shell (routing reads the
+        // cached account from login) until the next manual refresh.
+        if (id === myAccount?.id) await refreshMyAccount();
       } catch (e) {
         pushToast("Не удалось изменить роль", e instanceof Error ? e.message : "", "error");
       }
     },
-    [loadAll, pushToast]
+    [loadAll, pushToast, myAccount, refreshMyAccount]
   );
 
   const updateAccount = useCallback(
@@ -124,6 +131,22 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
       await api.put(`/admin/accounts/${id}`, patch);
       pushToast("Менеджер обновлён");
       await loadAll();
+    },
+    [loadAll, pushToast]
+  );
+
+  const createManager = useCallback(
+    async (input: { name: string; email: string; password: string; role: "manager" | "rop" }) => {
+      try {
+        await api.post("/admin/accounts", input);
+        pushToast("Аккаунт создан", `${input.name} может войти этими данными сразу`);
+        await loadAll();
+        return true;
+      } catch (e) {
+        const code = e instanceof ApiError ? e.code : "unknown_error";
+        pushToast("Не удалось создать аккаунт", code === "email_taken" ? "Такой email уже занят" : code, "error");
+        return false;
+      }
     },
     [loadAll, pushToast]
   );
@@ -378,6 +401,7 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
     adjustManager,
     changeRole,
     updateAccount,
+    createManager,
     deleteAccount,
     addFocusProduct,
     updateCashBonus,
