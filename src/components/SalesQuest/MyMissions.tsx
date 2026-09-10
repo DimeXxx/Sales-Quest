@@ -1,16 +1,19 @@
 import { useMemo, useState } from "react";
-import type { QuestCardData } from "../../types/sales";
+import type { PersonalTask, QuestCardData } from "../../types/sales";
 import { useLanguage } from "../../i18n/LanguageContext";
 import { Card } from "../ui/Card";
 import { Progress } from "../ui/Progress";
 import { PriorityBadge } from "../ui/Badge";
 import { ProductImage } from "../ui/ProductImage";
 import { Button } from "../ui/Button";
+import { PersonalTaskCard } from "./PersonalTaskCard";
 
 type MissionTab = "active" | "available" | "completed";
 
 interface MyMissionsProps {
   quests: QuestCardData[];
+  personalTasks: PersonalTask[];
+  onSubmitPersonalTaskEntry: (taskId: string, input: { label: string; amount?: number; note?: string }) => void;
   onSelect: (quest: QuestCardData) => void;
 }
 
@@ -20,7 +23,7 @@ interface MyMissionsProps {
  * logged at least one sale and stock remains; Available = stock remains and
  * you haven't touched it yet.
  */
-export function MyMissions({ quests, onSelect }: MyMissionsProps) {
+export function MyMissions({ quests, personalTasks, onSubmitPersonalTaskEntry, onSelect }: MyMissionsProps) {
   const { t } = useLanguage();
   const [tab, setTab] = useState<MissionTab>("active");
 
@@ -50,6 +53,17 @@ export function MyMissions({ quests, onSelect }: MyMissionsProps) {
         <h1 className="text-xl font-bold text-[#F5F7FA]">{t("myMissionsTitle")}</h1>
         <p className="mt-1 text-sm text-[#8B98A9]">{t("myMissionsSubtitle")}</p>
       </div>
+
+      {personalTasks.length > 0 && (
+        <div className="space-y-2.5">
+          <h2 className="text-xs font-bold uppercase tracking-wide text-[#8B98A9]">Личные задачи</h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {personalTasks.map((t) => (
+              <PersonalTaskCard key={t.id} task={t} onSubmitEntry={onSubmitPersonalTaskEntry} />
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex gap-2 border-b border-[#223044]">
         {TABS.map((tb) => (

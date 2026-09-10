@@ -5,6 +5,8 @@ const path = require("node:path");
 const authRoutes = require("./routes/auth").router;
 const appRoutes = require("./routes/app");
 const adminRoutes = require("./routes/admin");
+const personalTasksRoutes = require("./routes/personalTasks").router;
+const personalTasksAdminRoutes = require("./routes/personalTasksAdmin");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -15,7 +17,9 @@ app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
 app.use("/api", appRoutes);
+app.use("/api", personalTasksRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/admin", personalTasksAdminRoutes);
 
 // Serve the built frontend (production).
 app.use(express.static(distPath));

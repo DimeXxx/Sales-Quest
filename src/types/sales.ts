@@ -83,6 +83,47 @@ export interface BossFight {
   active: boolean;
 }
 
+export type PersonalTaskType = "debt_collection" | "individual_kpi";
+export type PersonalTaskTargetType = "sum" | "count";
+export type PersonalTaskStatus = "active" | "completed" | "cancelled";
+export type PersonalTaskEntryStatus = "pending" | "approved" | "rejected";
+
+export interface PersonalTaskEntry {
+  id: string;
+  taskId: string;
+  label: string;
+  amount: number | null;
+  note: string;
+  status: PersonalTaskEntryStatus;
+  submittedAt: string;
+  approvedAt: string | null;
+}
+
+export interface PersonalTask {
+  id: string;
+  type: PersonalTaskType;
+  title: string;
+  description: string;
+  assigneeId: string;
+  assigneeName?: string; // present on admin listing only
+  targetType: PersonalTaskTargetType;
+  targetSum: number | null;
+  targetCount: number | null;
+  universeCount: number | null;
+  deadline: string; // ISO
+  xpReward: number;
+  coinReward: number;
+  perEntryXp: number;
+  perEntryCoins: number;
+  status: PersonalTaskStatus;
+  rewardGranted: boolean;
+  createdAt: string;
+  entries: PersonalTaskEntry[];
+  progress: number;
+  target: number;
+  isExpired: boolean;
+}
+
 export interface Achievement {
   id: string;
   name: string;

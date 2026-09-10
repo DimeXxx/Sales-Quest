@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { BossFight, Manager, Priority, Reward } from "../types/sales";
+import type { BossFight, Manager, PersonalTask, Priority, Reward } from "../types/sales";
 import type { ParsedProductRow } from "../lib/excelImport";
 import type { TeamChallengeInput } from "../components/SalesQuest/TeamChallengeForm";
 import { api } from "../lib/api";
@@ -50,23 +50,26 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
   const [inventory, setInventory] = useState<InventoryRow[]>([]);
   const [bossFights, setBossFights] = useState<BossFight[]>([]);
   const [rewards, setRewards] = useState<Reward[]>([]);
+  const [personalTasks, setPersonalTasks] = useState<PersonalTask[]>([]);
   const [salesReport, setSalesReport] = useState<{ products: SalesReportProduct[]; managers: SalesReportManager[] }>({
     products: [],
     managers: [],
   });
 
   const loadAll = useCallback(async () => {
-    const [accountsRes, inventoryRes, bossRes, rewardsRes, reportRes] = await Promise.all([
+    const [accountsRes, inventoryRes, bossRes, rewardsRes, personalTasksRes, reportRes] = await Promise.all([
       api.get<{ accounts: Manager[] }>("/admin/accounts"),
       api.get<{ rows: InventoryRow[] }>("/admin/inventory"),
       api.get<{ bossFights: BossFight[] }>("/boss-fights"),
       api.get<{ rewards: Reward[] }>("/admin/rewards"),
+      api.get<{ tasks: PersonalTask[] }>("/admin/personal-tasks"),
       api.get<{ products: SalesReportProduct[]; managers: SalesReportManager[] }>("/admin/sales-report"),
     ]);
     setAccounts(accountsRes.accounts);
     setInventory(inventoryRes.rows);
     setBossFights(bossRes.bossFights);
     setRewards(rewardsRes.rewards);
+    setPersonalTasks(personalTasksRes.tasks);
     setSalesReport(reportRes);
   }, []);
 
@@ -311,6 +314,56 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
     pushToast("Ачивки пересчитаны", `Новых разблокировок: ${res.totalUnlocked}`);
   }, [pushToast]);
 
+  const createPersonalTask = useCallback(
+    async (input: {
+      type: "debt_collection" | "individual_kpi";
+      title: string;
+      description: string;
+      assigneeIds: string[];
+      targetType: "sum" | "count";
+      targetSum?: number;
+      targetCount?: number;
+      universeCount?: number;
+      deadline: string;
+      xpReward: number;
+      coinReward: number;
+      perEntryXp: number;
+      perEntryCoins: number;
+    }) => {
+      await api.post("/admin/personal-tasks", input);
+      pushToast("Задача назначена", `${input.assigneeIds.length} сотрудник(ов)`);
+      await loadAll();
+    },
+    [loadAll, pushToast]
+  );
+
+  const deletePersonalTask = useCallback(
+    async (id: string) => {
+      await api.del(`/admin/personal-tasks/${id}`);
+      pushToast("Задача удалена");
+      await loadAll();
+    },
+    [loadAll, pushToast]
+  );
+
+  const approvePersonalTaskEntry = useCallback(
+    async (taskId: string, entryId: string) => {
+      await api.post(`/admin/personal-tasks/${taskId}/entries/${entryId}/approve`);
+      pushToast("Подтверждено", "Награда начислена сотруднику");
+      await loadAll();
+    },
+    [loadAll, pushToast]
+  );
+
+  const rejectPersonalTaskEntry = useCallback(
+    async (taskId: string, entryId: string) => {
+      await api.post(`/admin/personal-tasks/${taskId}/entries/${entryId}/reject`);
+      pushToast("Отклонено");
+      await loadAll();
+    },
+    [loadAll, pushToast]
+  );
+
   return {
     accounts,
     pendingAccounts,
@@ -318,6 +371,7 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
     inventory,
     bossFights,
     rewards,
+    personalTasks,
     salesReport,
     approveAccount,
     rejectAccount,
@@ -329,6 +383,10 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
     updateCashBonus,
     recomputePriorities,
     recomputeAchievements,
+    createPersonalTask,
+    deletePersonalTask,
+    approvePersonalTaskEntry,
+    rejectPersonalTaskEntry,
     updateFocusProduct,
     bulkImportProducts,
     removeFocusProduct,

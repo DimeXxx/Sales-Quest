@@ -1,6 +1,6 @@
 import { Suspense, lazy, useState } from "react";
 import { Clock, FileSpreadsheet, Gift, LayoutDashboard, LogOut, Package, RotateCcw, Shield, Target, TrendingUp, Users } from "lucide-react";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, ClipboardList } from "lucide-react";
 import { useLanguage } from "../../i18n/LanguageContext";
 import { useToasts } from "../../hooks/useToasts";
 import { useAdminState } from "../../hooks/useAdminState";
@@ -13,10 +13,11 @@ import { ResetPanel } from "./ResetPanel";
 import { PendingApprovalsPanel } from "./PendingApprovalsPanel";
 import { SalesReportPanel } from "./SalesReportPanel";
 import { RewardsPanel } from "./RewardsPanel";
+import { PersonalTasksPanel } from "./PersonalTasksPanel";
 
 const AdminAnalytics = lazy(() => import("./AdminAnalytics").then((m) => ({ default: m.AdminAnalytics })));
 
-type AdminSection = "overview" | "pending" | "products" | "bossfights" | "rewards" | "managers" | "reports" | "analytics" | "reset";
+type AdminSection = "overview" | "pending" | "products" | "bossfights" | "rewards" | "personalTasks" | "managers" | "reports" | "analytics" | "reset";
 
 interface AdminAppProps {
   managerName: string;
@@ -45,6 +46,7 @@ export function AdminApp({ managerName, logout }: AdminAppProps) {
     { id: "products", label: t("adminNavProducts"), icon: Package },
     { id: "bossfights", label: t("adminNavBossFights"), icon: Target },
     { id: "rewards", label: t("rewardStore"), icon: Gift },
+    { id: "personalTasks", label: "Личные задачи", icon: ClipboardList },
     { id: "managers", label: t("adminNavManagers"), icon: Users },
     { id: "reports", label: t("salesReport"), icon: FileSpreadsheet },
     { id: "analytics", label: t("adminNavAnalytics"), icon: BarChart3 },
@@ -162,6 +164,17 @@ export function AdminApp({ managerName, logout }: AdminAppProps) {
 
         {section === "rewards" && (
           <RewardsPanel rewards={admin.rewards} onCreate={admin.createReward} onUpdate={admin.updateReward} onDelete={admin.deleteReward} />
+        )}
+
+        {section === "personalTasks" && (
+          <PersonalTasksPanel
+            tasks={admin.personalTasks}
+            managers={admin.approvedAccounts.filter((m) => m.role === "manager")}
+            onCreate={admin.createPersonalTask}
+            onDelete={admin.deletePersonalTask}
+            onApproveEntry={admin.approvePersonalTaskEntry}
+            onRejectEntry={admin.rejectPersonalTaskEntry}
+          />
         )}
 
         {section === "managers" && (

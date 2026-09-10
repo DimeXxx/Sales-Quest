@@ -2,6 +2,7 @@ import { Suspense, lazy, useState } from "react";
 import { LayoutGrid } from "lucide-react";
 import { useToasts } from "./hooks/useToasts";
 import { useGameState } from "./hooks/useGameState";
+import { usePersonalTasks } from "./hooks/usePersonalTasks";
 import { useAuth } from "./auth/AuthContext";
 import { useLanguage } from "./i18n/LanguageContext";
 import type { QuestCardData } from "./types/sales";
@@ -57,6 +58,7 @@ function ManagerApp({ accountName, logout }: { accountName: string; logout: () =
   const { toasts, pushToast } = useToasts();
   const { t } = useLanguage();
   const game = useGameState({ pushToast });
+  const personalTasks = usePersonalTasks({ pushToast });
 
   const rank = game.leaderboard.findIndex((m) => m.id === game.currentManager?.id) + 1;
 
@@ -86,7 +88,14 @@ function ManagerApp({ accountName, logout }: { accountName: string; logout: () =
               />
             )}
 
-            {tab === "missions" && <MyMissions quests={game.questCards} onSelect={setSelectedQuest} />}
+            {tab === "missions" && (
+              <MyMissions
+                quests={game.questCards}
+                personalTasks={personalTasks.tasks}
+                onSubmitPersonalTaskEntry={personalTasks.submitEntry}
+                onSelect={setSelectedQuest}
+              />
+            )}
 
             {tab === "products" && <Products quests={game.questCards} onSelect={setSelectedQuest} />}
 

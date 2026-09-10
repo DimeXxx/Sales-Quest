@@ -113,13 +113,23 @@ function seedData() {
     },
   ];
 
-  return { accounts, products, focusProducts, bossFights, rewards, achievements, accountAchievements: [], sales: [], redemptions: [] };
+  return {
+    accounts, products, focusProducts, bossFights, rewards, achievements,
+    accountAchievements: [], sales: [], redemptions: [],
+    personalTasks: [], personalTaskEntries: [],
+  };
 }
 
 function load() {
   if (fs.existsSync(DB_PATH)) {
     try {
-      return JSON.parse(fs.readFileSync(DB_PATH, "utf8"));
+      const data = JSON.parse(fs.readFileSync(DB_PATH, "utf8"));
+      // Backfill fields/tables added after this file was first created —
+      // an existing production data.json shouldn't need a reset just
+      // because a new feature introduced a new array.
+      data.personalTasks ??= [];
+      data.personalTaskEntries ??= [];
+      return data;
     } catch {
       console.error("[db] Corrupt data file, reseeding.");
     }
