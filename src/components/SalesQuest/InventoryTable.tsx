@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Check, Pencil, Trash2, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ArrowDown, ArrowUp, Check, ChevronLeft, ChevronRight, Pencil, Trash2, X } from "lucide-react";
 import type { InventoryRow } from "../../hooks/useAdminState";
 import type { Priority } from "../../types/sales";
 import { Card } from "../ui/Card";
@@ -8,6 +8,19 @@ import { ProductImage } from "../ui/ProductImage";
 import { ConfirmButton } from "../ui/ConfirmButton";
 import { PhotoPicker } from "../ui/PhotoPicker";
 import { useLanguage } from "../../i18n/LanguageContext";
+
+type SortKey = "name" | "price" | "stock" | "soldCount";
+
+const PAGE_SIZE = 25;
+
+function SortHeader({ label, active, dir, onClick }: { label: string; active: boolean; dir: 1 | -1; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className="flex items-center gap-1 hover:text-[#F5F7FA]">
+      {label}
+      {active && (dir === 1 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
+    </button>
+  );
+}
 
 interface InventoryTableProps {
   rows: InventoryRow[];
@@ -65,6 +78,28 @@ export function InventoryTable({ rows, onRemove, onUpdateCashBonus, onUpdate }: 
   const [cashDrafts, setCashDrafts] = useState<Record<string, string>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<EditDraft | null>(null);
+  const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: "stock", dir: -1 });
+  const [page, setPage] = useState(0);
+
+  const sorted = useMemo(() => {
+    const copy = [...rows];
+    copy.sort((a, b) => {
+      const av = a[sort.key];
+      const bv = b[sort.key];
+      if (typeof av === "string") return av.localeCompare(String(bv)) * sort.dir;
+      return (Number(av) - Number(bv)) * sort.dir;
+    });
+    return copy;
+  }, [rows, sort]);
+
+  const pageCount = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  const clampedPage = Math.min(page, pageCount - 1);
+  const paged = sorted.slice(clampedPage * PAGE_SIZE, clampedPage * PAGE_SIZE + PAGE_SIZE);
+
+  const toggleSort = (key: SortKey) => {
+    setPage(0);
+    setSort((s) => (s.key === key ? { key, dir: s.dir === 1 ? -1 : 1 } : { key, dir: -1 }));
+  };
 
   const startEdit = (r: InventoryRow) => {
     setEditingId(r.focusProductId);
@@ -103,11 +138,11 @@ export function InventoryTable({ rows, onRemove, onUpdateCashBonus, onUpdate }: 
           <thead>
             <tr className="border-b border-[#223044] text-[11px] uppercase tracking-wide text-[#8B98A9]">
               <th className="px-3 py-3" />
-              <th className="px-4 py-3 font-semibold">Product</th>
+              <th className="px-4 py-3 font-semibold"><SortHeader label="Product" active={sort.key === "name"} dir={sort.dir} onClick={() => toggleSort("name")} /></th>
               <th className="px-4 py-3 font-semibold">SKU</th>
-              <th className="px-4 py-3 font-semibold">Price</th>
-              <th className="px-4 py-3 font-semibold">Stock</th>
-              <th className="px-4 py-3 font-semibold">{t("soldQty")}</th>
+              <th className="px-4 py-3 font-semibold"><SortHeader label="Price" active={sort.key === "price"} dir={sort.dir} onClick={() => toggleSort("price")} /></th>
+              <th className="px-4 py-3 font-semibold"><SortHeader label="Stock" active={sort.key === "stock"} dir={sort.dir} onClick={() => toggleSort("stock")} /></th>
+              <th className="px-4 py-3 font-semibold"><SortHeader label={t("soldQty")} active={sort.key === "soldCount"} dir={sort.dir} onClick={() => toggleSort("soldCount")} /></th>
               <th className="px-4 py-3 font-semibold">Priority</th>
               <th className="px-4 py-3 font-semibold">XP</th>
               <th className="px-4 py-3 font-semibold">Coins</th>
@@ -115,7 +150,7 @@ export function InventoryTable({ rows, onRemove, onUpdateCashBonus, onUpdate }: 
             </tr>
           </thead>
           <tbody>
-            {rows.map((r) => {
+            {paged.map((r) => {
               const isEditing = editingId === r.focusProductId;
               const cashDraft = cashDrafts[r.focusProductId] ?? String(r.cashBonus);
               const cashChanged = Number(cashDraft) !== r.cashBonus;
@@ -173,9 +208,9 @@ export function InventoryTable({ rows, onRemove, onUpdateCashBonus, onUpdate }: 
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex max-w-[220px] items-center gap-2.5">
                       <ProductImage name={r.name} category={r.category} src={r.imageUrl ?? undefined} className="h-9 w-9 shrink-0 rounded-lg object-cover" />
-                      <span className="font-semibold text-[#F5F7FA]">{r.name}</span>
+                      <span className="truncate font-semibold text-[#F5F7FA]" title={r.name}>{r.name}</span>
                     </div>
                   </td>
                   <td className="px-4 py-3 font-mono text-[#8B98A9]">{r.sku}</td>
@@ -217,6 +252,30 @@ export function InventoryTable({ rows, onRemove, onUpdateCashBonus, onUpdate }: 
           </tbody>
         </table>
       </div>
+      {sorted.length > PAGE_SIZE && (
+        <div className="flex items-center justify-between border-t border-[#223044] px-4 py-3 text-xs text-[#8B98A9]">
+          <span>
+            {clampedPage * PAGE_SIZE + 1}–{Math.min(sorted.length, (clampedPage + 1) * PAGE_SIZE)} из {sorted.length}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={clampedPage === 0}
+              className="flex h-7 w-7 items-center justify-center rounded-md border border-[#223044] disabled:opacity-30"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </button>
+            <span className="font-mono">{clampedPage + 1} / {pageCount}</span>
+            <button
+              onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+              disabled={clampedPage >= pageCount - 1}
+              className="flex h-7 w-7 items-center justify-center rounded-md border border-[#223044] disabled:opacity-30"
+            >
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }

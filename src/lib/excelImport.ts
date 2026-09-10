@@ -55,9 +55,13 @@ function findColumn(headers: string[], aliases: string[]): string | undefined {
   return undefined;
 }
 
-function guessPriority(stock: number, marginPercent: number): Priority {
-  if (stock >= 80 || marginPercent < 10) return "critical";
-  if (marginPercent >= 25) return "high";
+function guessPriority(stock: number, marginPercent: number, hasMargin: boolean): Priority {
+  // Stock volume drives the tier — that's the app's core "clear the overstock"
+  // signal and is always available. Margin only matters if the sheet
+  // actually had that column; a MISSING margin must never be treated as a
+  // 0% margin (that used to force everything to "critical").
+  if (stock >= 100) return "critical";
+  if (stock >= 40 || (hasMargin && marginPercent >= 25)) return "high";
   return "normal";
 }
 
@@ -93,9 +97,10 @@ export async function parseProductsWorkbook(file: File): Promise<{ rows: ParsedP
     const stock = colMap.stock ? parseNumber(r[colMap.stock]) : 0;
     const stockAgeDays = colMap.stockAgeDays ? parseNumber(r[colMap.stockAgeDays]) : 0;
     const marginPercent = colMap.marginPercent ? parseNumber(r[colMap.marginPercent]) : 0;
+    const hasMargin = Boolean(colMap.marginPercent);
     const cashBonus = colMap.cashBonus ? parseNumber(r[colMap.cashBonus]) : 0;
 
-    const priority = guessPriority(stock, marginPercent);
+    const priority = guessPriority(stock, marginPercent, hasMargin);
     const valid = Boolean(name && stock >= 0);
 
     return {

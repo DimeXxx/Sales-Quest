@@ -396,6 +396,24 @@ router.post("/reset/achievements", (_req, res) => {
   res.status(204).end();
 });
 
+router.post("/recompute-priorities", (_req, res) => {
+  // Fixes the fallout of the old buggy import logic (missing margin data
+  // used to force everything to "critical"). Stock-volume only, matching
+  // the corrected client-side guessPriority.
+  let changed = 0;
+  for (const fp of state.focusProducts) {
+    const product = state.products.find((p) => p.id === fp.productId);
+    if (!product) continue;
+    const next = product.stock >= 100 ? "critical" : product.stock >= 40 ? "high" : "normal";
+    if (next !== fp.priority) {
+      fp.priority = next;
+      changed++;
+    }
+  }
+  save();
+  res.json({ changed });
+});
+
 router.post("/reset/all", (_req, res) => {
   state.accounts.filter((a) => a.role !== "rop" && a.role !== "admin").forEach(resetManagerFields);
   state.products.forEach((p) => { p.stock = p.initialStock; });

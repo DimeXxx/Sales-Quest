@@ -300,6 +300,12 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
     [loadAll]
   );
 
+  const recomputePriorities = useCallback(async () => {
+    const res = await api.post<{ changed: number }>("/admin/recompute-priorities");
+    pushToast("Приоритеты пересчитаны", `Изменено товаров: ${res.changed}`);
+    await loadAll();
+  }, [loadAll, pushToast]);
+
   return {
     accounts,
     pendingAccounts,
@@ -316,6 +322,7 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
     deleteAccount,
     addFocusProduct,
     updateCashBonus,
+    recomputePriorities,
     updateFocusProduct,
     bulkImportProducts,
     removeFocusProduct,

@@ -54,6 +54,7 @@ interface AdminPanelProps {
   onCreateBossFight: (input: TeamChallengeInput) => void;
   onUpdateBossFight: (id: string, input: TeamChallengeInput) => void;
   onDeleteBossFight: (id: string) => void;
+  onRecomputePriorities: () => void;
   /** Show only the products/inventory section (used by the split Admin nav). */
   hideBossFights?: boolean;
   /** Show only the Boss Fights section (used by the split Admin nav). */
@@ -72,6 +73,7 @@ export function AdminPanel({
   onCreateBossFight,
   onUpdateBossFight,
   onDeleteBossFight,
+  onRecomputePriorities,
   hideBossFights = false,
   onlyBossFights = false,
 }: AdminPanelProps) {
@@ -94,14 +96,19 @@ export function AdminPanel({
           <div className="lg:col-span-3">
             <div className="mb-3 flex items-center justify-between gap-3">
               <h2 className="text-sm font-bold text-[#F5F7FA]">{t("inventory")}</h2>
-              <div className="flex max-w-[220px] items-center gap-2 rounded-lg border border-[#223044] bg-white/[0.02] px-2.5 py-1.5 text-[#8B98A9]">
-                <Search className="h-3.5 w-3.5" />
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder={t("searchPlaceholder")}
-                  className="w-full bg-transparent text-xs text-[#F5F7FA] outline-none placeholder:text-[#8B98A9]"
-                />
+              <div className="flex items-center gap-2">
+                <button onClick={onRecomputePriorities} className="whitespace-nowrap rounded-lg border border-[#223044] bg-white/[0.02] px-2.5 py-1.5 text-xs font-semibold text-[#8B98A9] hover:text-[#F5F7FA]">
+                  Пересчитать приоритеты
+                </button>
+                <div className="flex max-w-[220px] items-center gap-2 rounded-lg border border-[#223044] bg-white/[0.02] px-2.5 py-1.5 text-[#8B98A9]">
+                  <Search className="h-3.5 w-3.5" />
+                  <input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder={t("searchPlaceholder")}
+                    className="w-full bg-transparent text-xs text-[#F5F7FA] outline-none placeholder:text-[#8B98A9]"
+                  />
+                </div>
               </div>
             </div>
             <InventoryTable rows={filteredInventory} onRemove={onRemoveFocusProduct} onUpdateCashBonus={onUpdateCashBonus} onUpdate={onUpdateFocusProduct} />
