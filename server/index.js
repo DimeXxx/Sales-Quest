@@ -10,7 +10,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 const distPath = path.join(__dirname, "..", "dist");
 
-app.use(express.json());
+app.use(express.json({ limit: "6mb" })); // allows base64-encoded product photo uploads
 app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);

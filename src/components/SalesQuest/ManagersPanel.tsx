@@ -1,19 +1,24 @@
 import { useState } from "react";
-import { Coins, Crown, Users, Zap } from "lucide-react";
+import { Coins, Crown, Pencil, Trash2, Users, X, Zap } from "lucide-react";
 import type { Manager } from "../../types/sales";
 import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
+import { ConfirmButton } from "../ui/ConfirmButton";
 import { useLanguage } from "../../i18n/LanguageContext";
 
 interface ManagersPanelProps {
   managers: Manager[];
   onAdjust: (managerId: string, delta: { coins?: number; xp?: number }) => void;
   onChangeRole?: (managerId: string, role: "manager" | "rop") => void;
+  onUpdate?: (managerId: string, patch: { name?: string; email?: string }) => void;
+  onDelete?: (managerId: string) => void;
 }
 
-export function ManagersPanel({ managers, onAdjust, onChangeRole }: ManagersPanelProps) {
+export function ManagersPanel({ managers, onAdjust, onChangeRole, onUpdate, onDelete }: ManagersPanelProps) {
   const { t } = useLanguage();
   const [drafts, setDrafts] = useState<Record<string, { coins: string; xp: string }>>({});
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState({ name: "", email: "" });
 
   const draftFor = (id: string) => drafts[id] ?? { coins: "", xp: "" };
   const setDraft = (id: string, patch: Partial<{ coins: string; xp: string }>) =>
@@ -28,26 +33,56 @@ export function ManagersPanel({ managers, onAdjust, onChangeRole }: ManagersPane
     setDrafts((prev) => ({ ...prev, [id]: { coins: "", xp: "" } }));
   };
 
+  const startEdit = (m: Manager) => {
+    setEditingId(m.id);
+    setEditDraft({ name: m.name, email: m.email ?? "" });
+  };
+
+  const saveEdit = () => {
+    if (!editingId || !onUpdate) return;
+    onUpdate(editingId, editDraft);
+    setEditingId(null);
+  };
+
+  const field = "w-full rounded-lg border border-[#223044] bg-white/[0.02] px-2.5 py-1.5 text-xs text-[#F5F7FA] outline-none placeholder:text-[#8B98A9] focus:border-cyan-400";
+
   return (
     <div>
-      <h2 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-400">
-        <Users className="h-4 w-4 text-cyan-400" /> {t("managersList")}
+      <h2 className="mb-3 flex items-center gap-2 text-sm font-bold text-[#F5F7FA]">
+        <Users className="h-4 w-4 text-cyan-300" /> {t("managersList")}
       </h2>
       <div className="grid gap-3 sm:grid-cols-2">
         {managers.map((m) => {
           const d = draftFor(m.id);
+          const isEditing = editingId === m.id;
+
+          if (isEditing) {
+            return (
+              <Card key={m.id} className="border-cyan-400/30 p-4">
+                <div className="space-y-2">
+                  <input className={field} value={editDraft.name} onChange={(e) => setEditDraft((d) => ({ ...d, name: e.target.value }))} />
+                  <input className={field} value={editDraft.email} onChange={(e) => setEditDraft((d) => ({ ...d, email: e.target.value }))} />
+                  <div className="flex gap-1.5">
+                    <Button size="sm" className="flex-1" onClick={saveEdit}>{t("apply")}</Button>
+                    <button onClick={() => setEditingId(null)} className="flex h-8 w-8 items-center justify-center rounded-md bg-white/5 text-[#8B98A9]"><X className="h-4 w-4" /></button>
+                  </div>
+                </div>
+              </Card>
+            );
+          }
+
           return (
             <Card key={m.id} interactive className="p-4">
               <div className="mb-3 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-slate-700 to-slate-800 text-xs font-bold">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/[0.06] text-xs font-bold text-[#F5F7FA]">
                   {m.avatar}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="flex items-center gap-1.5 truncate text-sm font-semibold text-slate-100">
+                  <p className="flex items-center gap-1.5 truncate text-sm font-semibold text-[#F5F7FA]">
                     {m.name}
                     {m.role === "rop" && <Crown className="h-3.5 w-3.5 text-amber-400" />}
                   </p>
-                  <p className="text-[11px] text-slate-500">Level {m.level} · {m.role}</p>
+                  <p className="truncate text-[11px] text-[#8B98A9]">{m.email} · Level {m.level}</p>
                 </div>
                 <div className="text-right">
                   <p className="flex items-center justify-end gap-1 text-xs font-bold text-amber-300">
@@ -59,33 +94,40 @@ export function ManagersPanel({ managers, onAdjust, onChangeRole }: ManagersPane
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <input
                   type="number"
                   placeholder={t("grantCoins")}
                   value={d.coins}
                   onChange={(e) => setDraft(m.id, { coins: e.target.value })}
-                  className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-xs outline-none placeholder:text-slate-600 focus:border-amber-400/50"
+                  className={field}
                 />
                 <input
                   type="number"
                   placeholder={t("grantXp")}
                   value={d.xp}
                   onChange={(e) => setDraft(m.id, { xp: e.target.value })}
-                  className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-xs outline-none placeholder:text-slate-600 focus:border-violet-400/50"
+                  className={field}
                 />
                 <Button size="sm" variant="secondary" onClick={() => apply(m.id)}>
                   {t("apply")}
                 </Button>
+              </div>
+              <div className="mt-2 flex items-center gap-1.5">
                 {onChangeRole && (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => onChangeRole(m.id, m.role === "rop" ? "manager" : "rop")}
-                    title={m.role === "rop" ? "Demote to manager" : "Promote to ROP"}
-                  >
+                  <Button size="sm" variant="secondary" className="flex-1" onClick={() => onChangeRole(m.id, m.role === "rop" ? "manager" : "rop")}>
                     {m.role === "rop" ? "→ Manager" : "→ ROP"}
                   </Button>
+                )}
+                {onUpdate && (
+                  <button onClick={() => startEdit(m)} className="flex h-8 w-8 items-center justify-center rounded-md bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20">
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
+                )}
+                {onDelete && (
+                  <ConfirmButton onConfirm={() => onDelete(m.id)} variant="danger" size="sm" className="!p-2">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </ConfirmButton>
                 )}
               </div>
             </Card>

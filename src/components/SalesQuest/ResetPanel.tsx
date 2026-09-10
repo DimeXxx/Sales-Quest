@@ -44,8 +44,8 @@ export function ResetPanel({
               <RotateCcw className="h-5 w-5 text-rose-300" />
             </div>
             <div>
-              <p className="text-base font-bold text-slate-100">{t("resetAllTitle")}</p>
-              <p className="mt-1 max-w-xl text-xs text-slate-500">{t("resetAllDesc")}</p>
+              <p className="text-base font-bold text-[#F5F7FA]">{t("resetAllTitle")}</p>
+              <p className="mt-1 max-w-xl text-xs text-[#8B98A9]">{t("resetAllDesc")}</p>
             </div>
           </div>
           <ConfirmButton onConfirm={onResetAll} variant="danger">
@@ -58,18 +58,18 @@ export function ResetPanel({
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-cyan-400" />
-            <p className="text-sm font-bold text-slate-100">{t("resetManagersTitle")}</p>
+            <p className="text-sm font-bold text-[#F5F7FA]">{t("resetManagersTitle")}</p>
           </div>
           <ConfirmButton onConfirm={onResetAllManagers} variant="secondary">
             {t("resetAllManagersButton")}
           </ConfirmButton>
         </div>
-        <p className="mb-3 text-xs text-slate-500">{t("resetManagersDesc")}</p>
+        <p className="mb-3 text-xs text-[#8B98A9]">{t("resetManagersDesc")}</p>
         <div className="space-y-1.5">
           {managers.map((m) => (
-            <div key={m.id} className="flex items-center justify-between rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2">
-              <span className="text-xs font-semibold text-slate-300">
-                {m.name} <span className="ml-1 text-slate-600">Lvl {m.level} · {m.xp.toLocaleString()} XP · {m.coins.toLocaleString()} Coins</span>
+            <div key={m.id} className="flex items-center justify-between rounded-lg border border-[#223044] bg-white/[0.02] px-3 py-2">
+              <span className="text-xs font-semibold text-[#F5F7FA]">
+                {m.name} <span className="ml-1 text-[#8B98A9]">Lvl {m.level} · {m.xp.toLocaleString()} XP · {m.coins.toLocaleString()} Coins</span>
               </span>
               <ConfirmButton onConfirm={() => onResetManager(m.id)} variant="secondary">
                 {t("resetOneButton")}
@@ -82,15 +82,15 @@ export function ResetPanel({
       <Card className="p-5">
         <div className="mb-3 flex items-center justify-between">
           <div>
-            <p className="text-sm font-bold text-slate-100">{t("resetStockTitle")}</p>
-            <p className="mt-1 text-xs text-slate-500">{t("resetStockDesc")}</p>
+            <p className="text-sm font-bold text-[#F5F7FA]">{t("resetStockTitle")}</p>
+            <p className="mt-1 text-xs text-[#8B98A9]">{t("resetStockDesc")}</p>
           </div>
           <ConfirmButton onConfirm={onResetAllStock} variant="secondary">
             {t("resetAllStockButton")}
           </ConfirmButton>
         </div>
-        <p className="text-xs text-slate-500">
-          {t("unitsCleared")}: <span className="font-mono font-semibold text-slate-300">{clearedTotal.toLocaleString()}</span>
+        <p className="text-xs text-[#8B98A9]">
+          {t("unitsCleared")}: <span className="font-mono font-semibold text-[#F5F7FA]">{clearedTotal.toLocaleString()}</span>
         </p>
       </Card>
 
@@ -98,10 +98,10 @@ export function ResetPanel({
         <Card className="p-5">
           <div className="mb-2 flex items-center gap-2">
             <Skull className="h-4 w-4 text-rose-400" />
-            <p className="text-sm font-bold text-slate-100">{t("resetBossFightsTitle")}</p>
+            <p className="text-sm font-bold text-[#F5F7FA]">{t("resetBossFightsTitle")}</p>
           </div>
-          <p className="mb-3 text-xs text-slate-500">{t("resetBossFightsDesc")}</p>
-          <p className="mb-3 text-xs text-slate-600">
+          <p className="mb-3 text-xs text-[#8B98A9]">{t("resetBossFightsDesc")}</p>
+          <p className="mb-3 text-xs text-[#8B98A9]">
             {bossFights.map((bf) => `${bf.currentQuantity}/${bf.targetQuantity}`).join(" · ")}
           </p>
           <ConfirmButton onConfirm={onResetAllBossFights} variant="secondary" className="w-full">
@@ -112,9 +112,9 @@ export function ResetPanel({
         <Card className="p-5">
           <div className="mb-2 flex items-center gap-2">
             <Trophy className="h-4 w-4 text-amber-400" />
-            <p className="text-sm font-bold text-slate-100">{t("resetAchievementsTitle")}</p>
+            <p className="text-sm font-bold text-[#F5F7FA]">{t("resetAchievementsTitle")}</p>
           </div>
-          <p className="mb-3 text-xs text-slate-500">{t("resetAchievementsDesc")}</p>
+          <p className="mb-3 text-xs text-[#8B98A9]">{t("resetAchievementsDesc")}</p>
           <Button variant="secondary" size="sm" onClick={onResetAchievements} className="w-full">
             {t("resetAchievementsButton")}
           </Button>

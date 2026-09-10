@@ -54,7 +54,7 @@ export function ProductImage({ src, name, category, className = "", accentFrom =
 
   if (failed || (!resolvedUrl && !loading)) {
     return (
-      <div className={`relative flex items-center justify-center overflow-hidden bg-slate-900 ${className}`}>
+      <div className={`relative flex items-center justify-center overflow-hidden bg-[#111923] ${className}`}>
         <div className={`absolute inset-0 bg-gradient-to-br ${accentFrom} ${accentTo}`} />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(255,255,255,0.08),transparent_60%)]" />
         <Package className="relative h-10 w-10 text-white/70 drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]" strokeWidth={1.5} />
@@ -64,7 +64,7 @@ export function ProductImage({ src, name, category, className = "", accentFrom =
 
   if (loading || !resolvedUrl) {
     return (
-      <div className={`relative overflow-hidden bg-slate-900 ${className}`}>
+      <div className={`relative overflow-hidden bg-[#111923] ${className}`}>
         <div className={`absolute inset-0 animate-pulse bg-gradient-to-br ${accentFrom} ${accentTo} opacity-50`} />
       </div>
     );

@@ -4,6 +4,7 @@ import type { Priority } from "../../types/sales";
 import { calculateReward } from "../../types/sales";
 import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
+import { PhotoPicker } from "../ui/PhotoPicker";
 import { useLanguage } from "../../i18n/LanguageContext";
 
 interface FocusProductFormProps {
@@ -18,6 +19,7 @@ interface FocusProductFormProps {
     xpReward: number;
     coinReward: number;
     cashBonus: number;
+    imageUrl: string | null;
   }) => void;
 }
 
@@ -32,6 +34,7 @@ const EMPTY = {
   xp: "",
   coins: "",
   cashBonus: "",
+  imageUrl: null as string | null,
 };
 
 export function FocusProductForm({ onCreate }: FocusProductFormProps) {
@@ -57,17 +60,22 @@ export function FocusProductForm({ onCreate }: FocusProductFormProps) {
       xpReward,
       coinReward,
       cashBonus: Number(form.cashBonus) || 0,
+      imageUrl: form.imageUrl,
     });
     setForm(EMPTY);
   };
 
-  const field = "rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm outline-none placeholder:text-slate-600 focus:border-violet-500";
+  const field = "rounded-lg border border-[#223044] bg-white/[0.02] px-3 py-2 text-sm text-[#F5F7FA] outline-none placeholder:text-[#8B98A9] focus:border-cyan-400";
 
   return (
     <Card className="p-5">
-      <h2 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-400">
-        <Plus className="h-4 w-4 text-violet-400" /> {t("addFocusProduct")}
+      <h2 className="mb-4 flex items-center gap-2 text-sm font-bold text-[#F5F7FA]">
+        <Plus className="h-4 w-4 text-cyan-300" /> {t("addFocusProduct")}
       </h2>
+
+      <div className="mb-3">
+        <PhotoPicker value={form.imageUrl} onChange={(imageUrl) => setForm((f) => ({ ...f, imageUrl }))} />
+      </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <input className={field} placeholder={t("productName")} value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
@@ -81,7 +89,7 @@ export function FocusProductForm({ onCreate }: FocusProductFormProps) {
           <option value="high">{t("filterHigh")}</option>
           <option value="normal">{t("filterNormal")}</option>
         </select>
-        <label className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-slate-400">
+        <label className="flex items-center gap-2 rounded-lg border border-[#223044] bg-white/[0.02] px-3 py-2 text-xs text-[#8B98A9]">
           <input type="checkbox" checked={autoReward} onChange={(e) => setAutoReward(e.target.checked)} />
           {t("autoReward")}
         </label>
@@ -106,12 +114,12 @@ export function FocusProductForm({ onCreate }: FocusProductFormProps) {
       )}
 
       {autoReward && (
-        <p className="mt-3 text-xs text-slate-500">
+        <p className="mt-3 text-xs text-[#8B98A9]">
           {t("rewardEngineSuggests")}: <span className="font-bold text-violet-300">+{xpReward} XP</span> ·{" "}
           <span className="font-bold text-amber-300">+{coinReward} Coins</span>
         </p>
       )}
-      <p className="mt-1 text-[11px] text-slate-600">{t("cashBonusHint")}</p>
+      <p className="mt-1 text-[11px] text-[#8B98A9]">{t("cashBonusHint")}</p>
 
       <Button className="mt-4 w-full" onClick={submit}>
         <Plus className="h-4 w-4" /> {t("createQuest")}

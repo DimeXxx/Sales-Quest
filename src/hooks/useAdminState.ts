@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import type { BossFight, Manager, Priority } from "../types/sales";
+import type { BossFight, Manager, Priority, Reward } from "../types/sales";
 import type { ParsedProductRow } from "../lib/excelImport";
+import type { TeamChallengeInput } from "../components/SalesQuest/TeamChallengeForm";
 import { api } from "../lib/api";
 import type { ToastMessage } from "../components/ui/Toast";
 
@@ -48,21 +49,24 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
   const [accounts, setAccounts] = useState<Manager[]>([]);
   const [inventory, setInventory] = useState<InventoryRow[]>([]);
   const [bossFights, setBossFights] = useState<BossFight[]>([]);
+  const [rewards, setRewards] = useState<Reward[]>([]);
   const [salesReport, setSalesReport] = useState<{ products: SalesReportProduct[]; managers: SalesReportManager[] }>({
     products: [],
     managers: [],
   });
 
   const loadAll = useCallback(async () => {
-    const [accountsRes, inventoryRes, bossRes, reportRes] = await Promise.all([
+    const [accountsRes, inventoryRes, bossRes, rewardsRes, reportRes] = await Promise.all([
       api.get<{ accounts: Manager[] }>("/admin/accounts"),
       api.get<{ rows: InventoryRow[] }>("/admin/inventory"),
       api.get<{ bossFights: BossFight[] }>("/boss-fights"),
+      api.get<{ rewards: Reward[] }>("/admin/rewards"),
       api.get<{ products: SalesReportProduct[]; managers: SalesReportManager[] }>("/admin/sales-report"),
     ]);
     setAccounts(accountsRes.accounts);
     setInventory(inventoryRes.rows);
     setBossFights(bossRes.bossFights);
+    setRewards(rewardsRes.rewards);
     setSalesReport(reportRes);
   }, []);
 
@@ -101,9 +105,35 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
 
   const changeRole = useCallback(
     async (id: string, role: "manager" | "rop") => {
-      await api.post(`/admin/accounts/${id}/role`, { role });
-      pushToast("Роль обновлена");
+      try {
+        await api.post(`/admin/accounts/${id}/role`, { role });
+        pushToast("Роль обновлена");
+        await loadAll();
+      } catch (e) {
+        pushToast("Не удалось изменить роль", e instanceof Error ? e.message : "", "error");
+      }
+    },
+    [loadAll, pushToast]
+  );
+
+  const updateAccount = useCallback(
+    async (id: string, patch: { name?: string; email?: string }) => {
+      await api.put(`/admin/accounts/${id}`, patch);
+      pushToast("Менеджер обновлён");
       await loadAll();
+    },
+    [loadAll, pushToast]
+  );
+
+  const deleteAccount = useCallback(
+    async (id: string) => {
+      try {
+        await api.del(`/admin/accounts/${id}`);
+        pushToast("Менеджер удалён");
+        await loadAll();
+      } catch {
+        pushToast("Не удалось удалить", "Это последний админ — назначь другого перед удалением", "error");
+      }
     },
     [loadAll, pushToast]
   );
@@ -120,6 +150,7 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
       xpReward: number;
       coinReward: number;
       cashBonus: number;
+      imageUrl: string | null;
     }) => {
       await api.post("/admin/focus-products", input);
       pushToast("Квест создан", `${input.name} теперь виден менеджерам`);
@@ -158,6 +189,8 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
         coinReward: number;
         cashBonus: number;
         stock: number;
+        imageUrl: string | null;
+        description: string;
       }>
     ) => {
       await api.put(`/admin/focus-products/${focusProductId}`, patch);
@@ -173,6 +206,60 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
       await loadAll();
     },
     [loadAll]
+  );
+
+  const createBossFight = useCallback(
+    async (input: TeamChallengeInput) => {
+      await api.post("/admin/boss-fights", input);
+      pushToast("Team Challenge создан");
+      await loadAll();
+    },
+    [loadAll, pushToast]
+  );
+
+  const updateBossFight = useCallback(
+    async (id: string, input: TeamChallengeInput) => {
+      await api.put(`/admin/boss-fights/${id}`, input);
+      pushToast("Team Challenge обновлён");
+      await loadAll();
+    },
+    [loadAll, pushToast]
+  );
+
+  const deleteBossFight = useCallback(
+    async (id: string) => {
+      await api.del(`/admin/boss-fights/${id}`);
+      pushToast("Team Challenge удалён");
+      await loadAll();
+    },
+    [loadAll, pushToast]
+  );
+
+  const createReward = useCallback(
+    async (input: { name: string; description: string; costCoins: number; icon: string }) => {
+      await api.post("/admin/rewards", input);
+      pushToast("Награда добавлена");
+      await loadAll();
+    },
+    [loadAll, pushToast]
+  );
+
+  const updateReward = useCallback(
+    async (id: string, patch: { name?: string; description?: string; costCoins?: number; icon?: string }) => {
+      await api.put(`/admin/rewards/${id}`, patch);
+      pushToast("Награда обновлена");
+      await loadAll();
+    },
+    [loadAll, pushToast]
+  );
+
+  const deleteReward = useCallback(
+    async (id: string) => {
+      await api.del(`/admin/rewards/${id}`);
+      pushToast("Награда удалена");
+      await loadAll();
+    },
+    [loadAll, pushToast]
   );
 
   const resetManagerProgress = useCallback(async (id: string) => {
@@ -201,7 +288,7 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
 
   const resetEverything = useCallback(async () => {
     await api.post("/admin/reset/all");
-    pushToast("Все данные сброшены", "Менеджеры, склад, Boss Fight и ачивки — на старте");
+    pushToast("Все данные сброшены", "Менеджеры, склад, Team Challenge и ачивки — на старте");
     await loadAll();
   }, [loadAll, pushToast]);
 
@@ -219,17 +306,26 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
     approvedAccounts,
     inventory,
     bossFights,
+    rewards,
     salesReport,
     approveAccount,
     rejectAccount,
     adjustManager,
     changeRole,
+    updateAccount,
+    deleteAccount,
     addFocusProduct,
     updateCashBonus,
     updateFocusProduct,
     bulkImportProducts,
     removeFocusProduct,
     toggleBossFight,
+    createBossFight,
+    updateBossFight,
+    deleteBossFight,
+    createReward,
+    updateReward,
+    deleteReward,
     resetManagerProgress,
     resetAllManagersProgress,
     resetAllStock,

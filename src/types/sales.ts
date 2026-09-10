@@ -128,9 +128,9 @@ export interface RewardEngineOutput {
  */
 export function calculateReward(input: RewardEngineInput): RewardEngineOutput {
   const base: Record<Priority, RewardEngineOutput> = {
-    critical: { xpReward: 100, coinReward: 120 },
-    high: { xpReward: 85, coinReward: 100 },
-    normal: { xpReward: 35, coinReward: 35 },
+    critical: { xpReward: 5, coinReward: 6 },
+    high: { xpReward: 3, coinReward: 4 },
+    normal: { xpReward: 1, coinReward: 2 },
   };
   const b = base[input.priority];
   const ageBoost = input.stockAgeDays > 120 ? 1.15 : 1;

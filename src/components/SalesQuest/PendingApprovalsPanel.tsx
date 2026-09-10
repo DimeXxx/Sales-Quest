@@ -17,8 +17,8 @@ export function PendingApprovalsPanel({ pending, onApprove, onReject }: PendingA
   if (pending.length === 0) {
     return (
       <Card className="p-5 text-center">
-        <Clock className="mx-auto mb-2 h-6 w-6 text-slate-600" />
-        <p className="text-sm text-slate-500">{t("noPendingAccounts")}</p>
+        <Clock className="mx-auto mb-2 h-6 w-6 text-[#8B98A9]" />
+        <p className="text-sm text-[#8B98A9]">{t("noPendingAccounts")}</p>
       </Card>
     );
   }
@@ -31,8 +31,8 @@ export function PendingApprovalsPanel({ pending, onApprove, onReject }: PendingA
             {m.avatar}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-slate-100">{m.name}</p>
-            <p className="truncate text-[11px] text-slate-500">{m.email}</p>
+            <p className="truncate text-sm font-semibold text-[#F5F7FA]">{m.name}</p>
+            <p className="truncate text-[11px] text-[#8B98A9]">{m.email}</p>
           </div>
           <Button size="sm" onClick={() => onApprove(m.id)}>
             <Check className="h-3.5 w-3.5" /> {t("approve")}

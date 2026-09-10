@@ -1,5 +1,5 @@
 import { Suspense, lazy, useState } from "react";
-import { Clock, FileSpreadsheet, LayoutDashboard, LogOut, Package, RotateCcw, Shield, Target, TrendingUp, Users } from "lucide-react";
+import { Clock, FileSpreadsheet, Gift, LayoutDashboard, LogOut, Package, RotateCcw, Shield, Target, TrendingUp, Users } from "lucide-react";
 import { BarChart3 } from "lucide-react";
 import { useLanguage } from "../../i18n/LanguageContext";
 import { useToasts } from "../../hooks/useToasts";
@@ -12,10 +12,11 @@ import { ManagersPanel } from "./ManagersPanel";
 import { ResetPanel } from "./ResetPanel";
 import { PendingApprovalsPanel } from "./PendingApprovalsPanel";
 import { SalesReportPanel } from "./SalesReportPanel";
+import { RewardsPanel } from "./RewardsPanel";
 
 const AdminAnalytics = lazy(() => import("./AdminAnalytics").then((m) => ({ default: m.AdminAnalytics })));
 
-type AdminSection = "overview" | "pending" | "products" | "bossfights" | "managers" | "reports" | "analytics" | "reset";
+type AdminSection = "overview" | "pending" | "products" | "bossfights" | "rewards" | "managers" | "reports" | "analytics" | "reset";
 
 interface AdminAppProps {
   managerName: string;
@@ -43,6 +44,7 @@ export function AdminApp({ managerName, logout }: AdminAppProps) {
     { id: "pending", label: t("adminNavPending"), icon: Clock, badge: admin.pendingAccounts.length },
     { id: "products", label: t("adminNavProducts"), icon: Package },
     { id: "bossfights", label: t("adminNavBossFights"), icon: Target },
+    { id: "rewards", label: t("rewardStore"), icon: Gift },
     { id: "managers", label: t("adminNavManagers"), icon: Users },
     { id: "reports", label: t("salesReport"), icon: FileSpreadsheet },
     { id: "analytics", label: t("adminNavAnalytics"), icon: BarChart3 },
@@ -130,6 +132,9 @@ export function AdminApp({ managerName, logout }: AdminAppProps) {
             onRemoveFocusProduct={admin.removeFocusProduct}
             onUpdateCashBonus={admin.updateCashBonus}
             onToggleBossFight={admin.toggleBossFight}
+            onCreateBossFight={admin.createBossFight}
+            onUpdateBossFight={admin.updateBossFight}
+            onDeleteBossFight={admin.deleteBossFight}
             hideBossFights
           />
         )}
@@ -144,12 +149,25 @@ export function AdminApp({ managerName, logout }: AdminAppProps) {
             onRemoveFocusProduct={admin.removeFocusProduct}
             onUpdateCashBonus={admin.updateCashBonus}
             onToggleBossFight={admin.toggleBossFight}
+            onCreateBossFight={admin.createBossFight}
+            onUpdateBossFight={admin.updateBossFight}
+            onDeleteBossFight={admin.deleteBossFight}
             onlyBossFights
           />
         )}
 
+        {section === "rewards" && (
+          <RewardsPanel rewards={admin.rewards} onCreate={admin.createReward} onUpdate={admin.updateReward} onDelete={admin.deleteReward} />
+        )}
+
         {section === "managers" && (
-          <ManagersPanel managers={admin.approvedAccounts} onAdjust={admin.adjustManager} onChangeRole={admin.changeRole} />
+          <ManagersPanel
+            managers={admin.approvedAccounts}
+            onAdjust={admin.adjustManager}
+            onChangeRole={admin.changeRole}
+            onUpdate={admin.updateAccount}
+            onDelete={admin.deleteAccount}
+          />
         )}
 
         {section === "reports" && <SalesReportPanel products={admin.salesReport.products} managers={admin.salesReport.managers} />}

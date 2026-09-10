@@ -36,6 +36,12 @@ router.post("/accounts/:id/role", (req, res) => {
   if (!["manager", "rop"].includes(role)) return res.status(400).json({ error: "invalid_role" });
   const account = state.accounts.find((a) => a.id === req.params.id);
   if (!account) return res.status(404).json({ error: "not_found" });
+
+  const otherAdmins = state.accounts.filter((a) => a.id !== account.id && (a.role === "rop" || a.role === "admin"));
+  if (role === "manager" && (account.role === "rop" || account.role === "admin") && otherAdmins.length === 0) {
+    return res.status(400).json({ error: "last_admin" });
+  }
+
   account.role = role;
   save();
   res.status(204).end();
@@ -50,6 +56,37 @@ router.post("/accounts/:id/adjust", (req, res) => {
   account.level = Math.floor(account.xp / 1000) + 1;
   save();
   res.json({ account: toPublicAccount(account) });
+});
+
+router.put("/accounts/:id", (req, res) => {
+  const { name, email } = req.body || {};
+  const account = state.accounts.find((a) => a.id === req.params.id);
+  if (!account) return res.status(404).json({ error: "not_found" });
+
+  if (email !== undefined) {
+    const normalized = String(email).trim().toLowerCase();
+    if (state.accounts.some((a) => a.id !== account.id && a.email === normalized)) {
+      return res.status(409).json({ error: "email_taken" });
+    }
+    account.email = normalized;
+  }
+  if (name !== undefined) account.name = name;
+  save();
+  res.json({ account: toPublicAccount(account) });
+});
+
+router.delete("/accounts/:id", (req, res) => {
+  const account = state.accounts.find((a) => a.id === req.params.id);
+  if (!account) return res.status(404).json({ error: "not_found" });
+
+  const otherAdmins = state.accounts.filter((a) => a.id !== account.id && (a.role === "rop" || a.role === "admin"));
+  if ((account.role === "rop" || account.role === "admin") && otherAdmins.length === 0) {
+    return res.status(400).json({ error: "last_admin" });
+  }
+
+  state.accounts = state.accounts.filter((a) => a.id !== account.id);
+  save();
+  res.status(204).end();
 });
 
 // ---- inventory / focus products -------------------------------------------
@@ -114,7 +151,7 @@ router.post("/focus-products", (req, res) => {
 
 router.post("/focus-products/bulk", (req, res) => {
   const rows = req.body?.rows || [];
-  const REWARD_BASE = { critical: [100, 120], high: [85, 100], normal: [35, 35] };
+  const REWARD_BASE = { critical: [5, 6], high: [3, 4], normal: [1, 2] };
 
   for (const row of rows) {
     const product = {
@@ -170,12 +207,14 @@ router.put("/focus-products/:id", (req, res) => {
   const product = state.products.find((p) => p.id === fp.productId);
   if (!product) return res.status(404).json({ error: "not_found" });
 
-  const { name, sku, category, price, priority, xpReward, coinReward, cashBonus, stock } = req.body || {};
+  const { name, sku, category, price, priority, xpReward, coinReward, cashBonus, stock, imageUrl, description } = req.body || {};
 
   if (name !== undefined) product.name = name;
   if (sku !== undefined) product.sku = sku;
   if (category !== undefined) product.category = category;
+  if (description !== undefined) product.description = description;
   if (price !== undefined) product.price = Number(price) || 0;
+  if (imageUrl !== undefined) product.imageUrl = imageUrl || null;
   if (stock !== undefined && stock !== "") {
     // Manual restock — treat the new number as a fresh cycle, so the
     // clearance gauge (sold vs initial) doesn't go negative or look wrong.
@@ -236,6 +275,83 @@ router.post("/boss-fights/:id/toggle", (req, res) => {
   const bf = state.bossFights.find((b) => b.id === req.params.id);
   if (!bf) return res.status(404).json({ error: "not_found" });
   bf.active = !bf.active;
+  save();
+  res.status(204).end();
+});
+
+router.post("/boss-fights", (req, res) => {
+  const { title, description, targetSku, targetQuantity, deadline, reward } = req.body || {};
+  if (!title || !targetSku || !targetQuantity || !deadline) return res.status(400).json({ error: "missing_fields" });
+  const bf = {
+    id: crypto.randomUUID(),
+    title,
+    description: description || "",
+    targetSku,
+    targetQuantity: Number(targetQuantity),
+    currentQuantity: 0,
+    deadline: new Date(deadline).toISOString(),
+    reward: reward || "",
+    active: false,
+  };
+  state.bossFights.push(bf);
+  save();
+  res.status(201).json({ id: bf.id });
+});
+
+router.put("/boss-fights/:id", (req, res) => {
+  const bf = state.bossFights.find((b) => b.id === req.params.id);
+  if (!bf) return res.status(404).json({ error: "not_found" });
+  const { title, description, targetSku, targetQuantity, deadline, reward } = req.body || {};
+  if (title !== undefined) bf.title = title;
+  if (description !== undefined) bf.description = description;
+  if (targetSku !== undefined) bf.targetSku = targetSku;
+  if (targetQuantity !== undefined) bf.targetQuantity = Number(targetQuantity) || bf.targetQuantity;
+  if (deadline !== undefined) bf.deadline = new Date(deadline).toISOString();
+  if (reward !== undefined) bf.reward = reward;
+  save();
+  res.status(204).end();
+});
+
+router.delete("/boss-fights/:id", (req, res) => {
+  state.bossFights = state.bossFights.filter((b) => b.id !== req.params.id);
+  save();
+  res.status(204).end();
+});
+
+// ---- rewards shop (admin-managed catalog) ---------------------------------
+router.get("/rewards", (_req, res) => {
+  res.json({ rewards: state.rewards });
+});
+
+router.post("/rewards", (req, res) => {
+  const { name, description, costCoins, icon } = req.body || {};
+  if (!name || !costCoins) return res.status(400).json({ error: "missing_fields" });
+  const reward = {
+    id: crypto.randomUUID(),
+    name,
+    description: description || "",
+    costCoins: Number(costCoins),
+    icon: icon || "gift",
+  };
+  state.rewards.push(reward);
+  save();
+  res.status(201).json({ id: reward.id });
+});
+
+router.put("/rewards/:id", (req, res) => {
+  const reward = state.rewards.find((r) => r.id === req.params.id);
+  if (!reward) return res.status(404).json({ error: "not_found" });
+  const { name, description, costCoins, icon } = req.body || {};
+  if (name !== undefined) reward.name = name;
+  if (description !== undefined) reward.description = description;
+  if (costCoins !== undefined) reward.costCoins = Number(costCoins) || reward.costCoins;
+  if (icon !== undefined) reward.icon = icon;
+  save();
+  res.status(204).end();
+});
+
+router.delete("/rewards/:id", (req, res) => {
+  state.rewards = state.rewards.filter((r) => r.id !== req.params.id);
   save();
   res.status(204).end();
 });

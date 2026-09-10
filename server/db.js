@@ -57,22 +57,22 @@ function seedData() {
   ];
 
   const focusProducts = [
-    { id: "fp1", productId: "p1", priority: "critical", xpReward: 100, coinReward: 120, cashBonus: 0, active: true, createdAt: nowIso },
-    { id: "fp2", productId: "p5", priority: "critical", xpReward: 105, coinReward: 130, cashBonus: 0, active: true, createdAt: nowIso },
-    { id: "fp3", productId: "p10", priority: "critical", xpReward: 95, coinReward: 110, cashBonus: 0, active: true, createdAt: nowIso },
-    { id: "fp4", productId: "p3", priority: "high", xpReward: 85, coinReward: 100, cashBonus: 0, active: true, createdAt: nowIso },
-    { id: "fp5", productId: "p7", priority: "high", xpReward: 90, coinReward: 105, cashBonus: 0, active: true, createdAt: nowIso },
-    { id: "fp6", productId: "p4", priority: "normal", xpReward: 35, coinReward: 35, cashBonus: 0, active: true, createdAt: nowIso },
-    { id: "fp7", productId: "p9", priority: "normal", xpReward: 40, coinReward: 45, cashBonus: 0, active: true, createdAt: nowIso },
+    { id: "fp1", productId: "p1", priority: "critical", xpReward: 5, coinReward: 6, cashBonus: 0, active: true, createdAt: nowIso },
+    { id: "fp2", productId: "p5", priority: "critical", xpReward: 5, coinReward: 7, cashBonus: 0, active: true, createdAt: nowIso },
+    { id: "fp3", productId: "p10", priority: "critical", xpReward: 5, coinReward: 6, cashBonus: 0, active: true, createdAt: nowIso },
+    { id: "fp4", productId: "p3", priority: "high", xpReward: 3, coinReward: 4, cashBonus: 0, active: true, createdAt: nowIso },
+    { id: "fp5", productId: "p7", priority: "high", xpReward: 3, coinReward: 5, cashBonus: 0, active: true, createdAt: nowIso },
+    { id: "fp6", productId: "p4", priority: "normal", xpReward: 1, coinReward: 2, cashBonus: 0, active: true, createdAt: nowIso },
+    { id: "fp7", productId: "p9", priority: "normal", xpReward: 1, coinReward: 2, cashBonus: 0, active: true, createdAt: nowIso },
   ];
 
   const rewards = [
-    { id: "r1", name: "Ozon сертификат $50", description: "Электронный сертификат на покупки", costCoins: 2500, icon: "gift" },
-    { id: "r2", name: "Дополнительный выходной", description: "Один оплачиваемый день отдыха", costCoins: 5000, icon: "sun" },
-    { id: "r3", name: "Парковка на неделю", description: "Личное место у офиса", costCoins: 1200, icon: "car" },
-    { id: "r4", name: "Обед за счёт компании", description: "Любое кафе в бизнес-центре", costCoins: 800, icon: "utensils" },
-    { id: "r5", name: "Беспроводные наушники", description: "Firm-brand ANC гарнитура", costCoins: 3400, icon: "headphones" },
-    { id: "r6", name: "Доп. отпуск (2 дня)", description: "Присоединяются к следующему отпуску", costCoins: 8000, icon: "plane" },
+    { id: "r1", name: "Ozon сертификат $50", description: "Электронный сертификат на покупки", costCoins: 100, icon: "gift" },
+    { id: "r2", name: "Дополнительный выходной", description: "Один оплачиваемый день отдыха", costCoins: 200, icon: "sun" },
+    { id: "r3", name: "Парковка на неделю", description: "Личное место у офиса", costCoins: 40, icon: "car" },
+    { id: "r4", name: "Обед за счёт компании", description: "Любое кафе в бизнес-центре", costCoins: 25, icon: "utensils" },
+    { id: "r5", name: "Беспроводные наушники", description: "Firm-brand ANC гарнитура", costCoins: 120, icon: "headphones" },
+    { id: "r6", name: "Доп. отпуск (2 дня)", description: "Присоединяются к следующему отпуску", costCoins: 280, icon: "plane" },
   ];
 
   const achievements = [

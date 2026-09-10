@@ -28,14 +28,14 @@ function ToastItem({ toast }: { toast: ToastMessage }) {
 
   return (
     <div
-      className={`pointer-events-auto flex min-w-[240px] items-center gap-3 rounded-xl border ${tone.border} bg-slate-900/95 px-4 py-3 shadow-2xl backdrop-blur-md animate-[toastIn_0.3s_ease-out]`}
+      className={`pointer-events-auto flex min-w-[240px] items-center gap-3 rounded-xl border ${tone.border} bg-[#111923]/95 px-4 py-3 shadow-2xl backdrop-blur-md animate-[toastIn_0.3s_ease-out]`}
     >
       <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${tone.icon}`}>
         <tone.Icon className="h-5 w-5" />
       </div>
       <div>
-        <p className="text-sm font-semibold text-slate-100">{toast.title}</p>
-        {toast.subtitle && <p className="text-xs text-slate-500">{toast.subtitle}</p>}
+        <p className="text-sm font-semibold text-[#F5F7FA]">{toast.title}</p>
+        {toast.subtitle && <p className="text-xs text-[#8B98A9]">{toast.subtitle}</p>}
       </div>
     </div>
   );

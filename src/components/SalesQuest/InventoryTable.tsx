@@ -6,6 +6,7 @@ import { Card } from "../ui/Card";
 import { PriorityBadge } from "../ui/Badge";
 import { ProductImage } from "../ui/ProductImage";
 import { ConfirmButton } from "../ui/ConfirmButton";
+import { PhotoPicker } from "../ui/PhotoPicker";
 import { useLanguage } from "../../i18n/LanguageContext";
 
 interface InventoryTableProps {
@@ -24,6 +25,7 @@ interface InventoryTableProps {
       coinReward: number;
       cashBonus: number;
       stock: number;
+      imageUrl: string | null;
     }>
   ) => void;
 }
@@ -38,6 +40,7 @@ interface EditDraft {
   xpReward: string;
   coinReward: string;
   cashBonus: string;
+  imageUrl: string | null;
 }
 
 function toDraft(r: InventoryRow): EditDraft {
@@ -51,10 +54,11 @@ function toDraft(r: InventoryRow): EditDraft {
     xpReward: String(r.xpReward),
     coinReward: String(r.coinReward),
     cashBonus: String(r.cashBonus),
+    imageUrl: r.imageUrl,
   };
 }
 
-const field = "w-full rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-1 text-xs text-slate-200 outline-none focus:border-cyan-400";
+const field = "w-full rounded-md border border-[#223044] bg-white/[0.03] px-1.5 py-1 text-xs text-[#F5F7FA] outline-none focus:border-cyan-400";
 
 export function InventoryTable({ rows, onRemove, onUpdateCashBonus, onUpdate }: InventoryTableProps) {
   const { t } = useLanguage();
@@ -84,6 +88,7 @@ export function InventoryTable({ rows, onRemove, onUpdateCashBonus, onUpdate }: 
       xpReward: Number(editDraft.xpReward) || 0,
       coinReward: Number(editDraft.coinReward) || 0,
       cashBonus: Number(editDraft.cashBonus) || 0,
+      imageUrl: editDraft.imageUrl,
     });
     cancelEdit();
   };
@@ -96,7 +101,7 @@ export function InventoryTable({ rows, onRemove, onUpdateCashBonus, onUpdate }: 
             container, and means edit/delete never need horizontal scroll. */}
         <table className="w-full min-w-[880px] text-left text-sm">
           <thead>
-            <tr className="border-b border-white/5 text-[11px] uppercase tracking-wide text-slate-500">
+            <tr className="border-b border-[#223044] text-[11px] uppercase tracking-wide text-[#8B98A9]">
               <th className="px-3 py-3" />
               <th className="px-4 py-3 font-semibold">Product</th>
               <th className="px-4 py-3 font-semibold">SKU</th>
@@ -123,15 +128,15 @@ export function InventoryTable({ rows, onRemove, onUpdateCashBonus, onUpdate }: 
                         <button onClick={() => saveEdit(r.focusProductId)} className="flex h-7 w-7 items-center justify-center rounded-md bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25">
                           <Check className="h-3.5 w-3.5" />
                         </button>
-                        <button onClick={cancelEdit} className="flex h-7 w-7 items-center justify-center rounded-md bg-white/5 text-slate-400 hover:bg-white/10">
+                        <button onClick={cancelEdit} className="flex h-7 w-7 items-center justify-center rounded-md bg-white/5 text-[#8B98A9] hover:bg-white/10">
                           <X className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     </td>
                     <td className="px-4 py-2">
-                      <div className="flex items-center gap-2">
-                        <ProductImage name={r.name} category={r.category} src={r.imageUrl ?? undefined} className="h-8 w-8 shrink-0 rounded-lg object-cover" />
+                      <div className="w-64 space-y-1.5">
                         <input className={field} value={editDraft.name} onChange={(e) => setEditDraft((d) => d && { ...d, name: e.target.value })} />
+                        <PhotoPicker value={editDraft.imageUrl} onChange={(imageUrl) => setEditDraft((d) => d && { ...d, imageUrl })} />
                       </div>
                     </td>
                     <td className="px-4 py-2"><input className={field} value={editDraft.sku} onChange={(e) => setEditDraft((d) => d && { ...d, sku: e.target.value })} /></td>
@@ -153,7 +158,7 @@ export function InventoryTable({ rows, onRemove, onUpdateCashBonus, onUpdate }: 
               }
 
               return (
-                <tr key={r.focusProductId} className="border-b border-white/5 last:border-0">
+                <tr key={r.focusProductId} className="border-b border-[#223044] last:border-0">
                   <td className="px-3 py-3">
                     <div className="flex items-center gap-1">
                       <button onClick={() => startEdit(r)} className="flex h-7 w-7 items-center justify-center rounded-md bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20">
@@ -170,12 +175,12 @@ export function InventoryTable({ rows, onRemove, onUpdateCashBonus, onUpdate }: 
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
                       <ProductImage name={r.name} category={r.category} src={r.imageUrl ?? undefined} className="h-9 w-9 shrink-0 rounded-lg object-cover" />
-                      <span className="font-semibold text-slate-200">{r.name}</span>
+                      <span className="font-semibold text-[#F5F7FA]">{r.name}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 font-mono text-slate-500">{r.sku}</td>
-                  <td className="px-4 py-3 font-mono text-slate-300">{r.price ? `$${r.price}` : "—"}</td>
-                  <td className="px-4 py-3 font-mono text-slate-300">{r.stock}</td>
+                  <td className="px-4 py-3 font-mono text-[#8B98A9]">{r.sku}</td>
+                  <td className="px-4 py-3 font-mono text-[#F5F7FA]">{r.price ? `$${r.price}` : "—"}</td>
+                  <td className="px-4 py-3 font-mono text-[#F5F7FA]">{r.stock}</td>
                   <td className="px-4 py-3 font-mono text-emerald-300">{r.soldCount}</td>
                   <td className="px-4 py-3"><PriorityBadge priority={r.priority} /></td>
                   <td className="px-4 py-3 font-semibold text-violet-300">{r.xpReward} XP</td>
@@ -187,7 +192,7 @@ export function InventoryTable({ rows, onRemove, onUpdateCashBonus, onUpdate }: 
                         step="0.01"
                         value={cashDraft}
                         onChange={(e) => setCashDrafts((d) => ({ ...d, [r.focusProductId]: e.target.value }))}
-                        className="w-16 rounded-md border border-white/10 bg-white/[0.03] px-2 py-1 text-xs text-emerald-300 outline-none focus:border-emerald-400"
+                        className="w-16 rounded-md border border-[#223044] bg-white/[0.02] px-2 py-1 text-xs text-emerald-300 outline-none focus:border-emerald-400"
                       />
                       {cashChanged && (
                         <button
@@ -204,7 +209,7 @@ export function InventoryTable({ rows, onRemove, onUpdateCashBonus, onUpdate }: 
             })}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={10} className="px-4 py-8 text-center text-sm text-slate-500">
+                <td colSpan={10} className="px-4 py-8 text-center text-sm text-[#8B98A9]">
                   Нет активных фокусных товаров.
                 </td>
               </tr>
