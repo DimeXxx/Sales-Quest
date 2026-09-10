@@ -15,6 +15,7 @@ import { QuestsTab } from "./components/SalesQuest/QuestsTab";
 import { MyMissions } from "./components/SalesQuest/MyMissions";
 import { Products } from "./components/SalesQuest/Products";
 import { MissionDetailModal } from "./components/SalesQuest/MissionDetailModal";
+import { ManagerProfileModal } from "./components/SalesQuest/ManagerProfileModal";
 import { ArenaTab } from "./components/SalesQuest/ArenaTab";
 import { AdminApp } from "./components/SalesQuest/AdminApp";
 
@@ -55,6 +56,7 @@ export default function App() {
 function ManagerApp({ accountName, logout }: { accountName: string; logout: () => void }) {
   const [tab, setTab] = useState<TabId>("quests");
   const [selectedQuest, setSelectedQuest] = useState<QuestCardData | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
   const { toasts, pushToast } = useToasts();
   const { t } = useLanguage();
   const game = useGameState({ pushToast });
@@ -70,7 +72,7 @@ function ManagerApp({ accountName, logout }: { accountName: string; logout: () =
         <SideNav active={tab} onChange={setTab} manager={game.currentManager} />
 
         <div className="min-h-screen flex-1 pb-16 lg:pb-0">
-          <Header name={accountName} roleLabel={t("roleManager")} onLogout={logout} />
+          <Header name={accountName} roleLabel={t("roleManager")} onLogout={logout} onOpenProfile={() => setProfileOpen(true)} />
 
           <main className="mx-auto max-w-6xl px-5 py-6 lg:px-8">
             {tab === "quests" && game.currentManager && (
@@ -119,6 +121,8 @@ function ManagerApp({ accountName, logout }: { accountName: string; logout: () =
       </div>
 
       <MissionDetailModal quest={selectedQuest} onClose={() => setSelectedQuest(null)} onSell={game.registerSale} />
+
+      <ManagerProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} onGoToRewards={() => setTab("arena")} />
 
       <BottomNav active={tab} onChange={setTab} />
     </div>

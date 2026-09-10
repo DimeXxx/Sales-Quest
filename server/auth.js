@@ -1,5 +1,7 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const crypto = require("node:crypto");
+const { state, save } = require("./db");
 
 // In production, set JWT_SECRET as a Railway environment variable. Falling
 // back to a fixed dev secret is fine for local testing but must never be
@@ -15,8 +17,19 @@ function verifyPassword(password, hash) {
   return bcrypt.compareSync(password, hash);
 }
 
-function signSession(account) {
-  return jwt.sign({ sub: account.id, role: account.role }, JWT_SECRET, { expiresIn: "30d" });
+/** Creates a real, revocable session record and returns its id + signed token. */
+function createSession(account, userAgent) {
+  const session = {
+    id: crypto.randomUUID(),
+    accountId: account.id,
+    userAgent: userAgent || "Unknown device",
+    createdAt: new Date().toISOString(),
+    lastSeenAt: new Date().toISOString(),
+  };
+  state.sessions.push(session);
+  save();
+  const token = jwt.sign({ sub: account.id, role: account.role, sid: session.id }, JWT_SECRET, { expiresIn: "30d" });
+  return token;
 }
 
 function setSessionCookie(res, token) {
@@ -32,13 +45,20 @@ function clearSessionCookie(res) {
   res.clearCookie(COOKIE_NAME);
 }
 
-/** Reads the session cookie, verifies it, and attaches { id, role } to req.auth. 401s if missing/invalid. */
+/**
+ * Reads the session cookie, verifies the JWT, and confirms the session
+ * hasn't been revoked (deleted from state.sessions — e.g. by "logout
+ * everywhere"). Attaches { id, role, sessionId } to req.auth.
+ */
 function requireAuth(req, res, next) {
   const token = req.cookies?.[COOKIE_NAME];
   if (!token) return res.status(401).json({ error: "not_authenticated" });
   try {
     const payload = jwt.verify(token, JWT_SECRET);
-    req.auth = { id: payload.sub, role: payload.role };
+    const session = state.sessions.find((s) => s.id === payload.sid);
+    if (!session) return res.status(401).json({ error: "session_revoked" });
+    session.lastSeenAt = new Date().toISOString();
+    req.auth = { id: payload.sub, role: payload.role, sessionId: session.id };
     next();
   } catch {
     return res.status(401).json({ error: "invalid_session" });
@@ -55,4 +75,13 @@ function requireRole(...roles) {
   };
 }
 
-module.exports = { hashPassword, verifyPassword, signSession, setSessionCookie, clearSessionCookie, requireAuth, requireRole, COOKIE_NAME };
+module.exports = {
+  hashPassword,
+  verifyPassword,
+  createSession,
+  setSessionCookie,
+  clearSessionCookie,
+  requireAuth,
+  requireRole,
+  COOKIE_NAME,
+};

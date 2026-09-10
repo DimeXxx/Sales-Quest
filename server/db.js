@@ -33,6 +33,11 @@ function seedData() {
     role: m.role,
     status: "approved",
     avatar: m.avatar,
+    avatarUrl: null,
+    department: "Продажи",
+    createdAt: new Date().toISOString(),
+    monthlyTarget: 0,
+    notifyPrefs: { inApp: true, email: false, telegram: false },
     level: 1,
     xp: 0,
     coins: 0,
@@ -117,6 +122,7 @@ function seedData() {
     accounts, products, focusProducts, bossFights, rewards, achievements,
     accountAchievements: [], sales: [], redemptions: [],
     personalTasks: [], personalTaskEntries: [],
+    sessions: [], xpLedger: [], notifications: [],
   };
 }
 
@@ -129,6 +135,16 @@ function load() {
       // because a new feature introduced a new array.
       data.personalTasks ??= [];
       data.personalTaskEntries ??= [];
+      data.sessions ??= [];
+      data.xpLedger ??= [];
+      data.notifications ??= [];
+      for (const a of data.accounts) {
+        a.avatarUrl ??= null;
+        a.department ??= "Продажи";
+        a.createdAt ??= new Date(0).toISOString(); // unknown for pre-existing accounts — flagged as "—" in the UI
+        a.monthlyTarget ??= 0;
+        a.notifyPrefs ??= { inApp: true, email: false, telegram: false };
+      }
       return data;
     } catch {
       console.error("[db] Corrupt data file, reseeding.");

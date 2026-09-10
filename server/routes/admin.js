@@ -3,6 +3,7 @@ const crypto = require("node:crypto");
 const { state, save } = require("../db");
 const { requireAuth, requireRole } = require("../auth");
 const { toPublicAccount } = require("./auth");
+const { notify, notifyAllManagers, logXpLedger } = require("../notify");
 
 const router = express.Router();
 router.use(requireAuth, requireRole("rop", "admin"));
@@ -54,12 +55,16 @@ router.post("/accounts/:id/adjust", (req, res) => {
   account.xp = Math.max(0, account.xp + Number(xp));
   account.coins = Math.max(0, account.coins + Number(coins));
   account.level = Math.floor(account.xp / 1000) + 1;
+  if (Number(xp) || Number(coins)) {
+    logXpLedger(account.id, "rop_bonus", Number(xp) || 0, Number(coins) || 0, "Бонус от РОПа");
+    notify(account.id, `РОП начислил бонус: +${Number(xp) || 0} XP, +${Number(coins) || 0} points`, "xp");
+  }
   save();
   res.json({ account: toPublicAccount(account) });
 });
 
 router.put("/accounts/:id", (req, res) => {
-  const { name, email } = req.body || {};
+  const { name, email, monthlyTarget, department } = req.body || {};
   const account = state.accounts.find((a) => a.id === req.params.id);
   if (!account) return res.status(404).json({ error: "not_found" });
 
@@ -71,6 +76,8 @@ router.put("/accounts/:id", (req, res) => {
     account.email = normalized;
   }
   if (name !== undefined) account.name = name;
+  if (monthlyTarget !== undefined) account.monthlyTarget = Number(monthlyTarget) || 0;
+  if (department !== undefined) account.department = department;
   save();
   res.json({ account: toPublicAccount(account) });
 });
@@ -144,6 +151,7 @@ router.post("/focus-products", (req, res) => {
   };
   state.products.push(product);
   state.focusProducts.push(focus);
+  notifyAllManagers(`Новый квест: ${product.name}`, "quest");
   save();
 
   res.status(201).json({ focusProductId: focus.id, productId: product.id });
@@ -294,6 +302,7 @@ router.post("/boss-fights", (req, res) => {
     active: false,
   };
   state.bossFights.push(bf);
+  notifyAllManagers(`Новый Team Challenge: ${bf.title}`, "quest");
   save();
   res.status(201).json({ id: bf.id });
 });

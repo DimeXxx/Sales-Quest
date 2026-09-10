@@ -5,6 +5,7 @@ const { requireAuth } = require("../auth");
 const { toPublicAccount } = require("./auth");
 const { computeSaleReward } = require("../rewardEngine");
 const { checkAndUnlockAchievements } = require("../achievements");
+const { notify, logXpLedger } = require("../notify");
 
 const router = express.Router();
 router.use(requireAuth);
@@ -76,6 +77,9 @@ router.post("/sales", (req, res) => {
     dealValue: dealValue !== undefined && dealValue !== "" ? Number(dealValue) || 0 : null,
     createdAt: new Date().toISOString(),
   });
+
+  logXpLedger(account.id, "sale", xpEarned, coinsEarned, `${product.name} × ${clampedQty}`);
+  notify(account.id, `Продажа ${product.name} × ${clampedQty} зафиксирована: +${xpEarned} XP, +${coinsEarned} points`, "sale");
 
   save();
 

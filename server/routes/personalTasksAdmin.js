@@ -3,6 +3,7 @@ const crypto = require("node:crypto");
 const { state, save } = require("../db");
 const { requireAuth, requireRole } = require("../auth");
 const { serializeTask } = require("./personalTasks");
+const { notify, logXpLedger } = require("../notify");
 
 const router = express.Router();
 router.use(requireAuth, requireRole("rop", "admin"));
@@ -49,6 +50,7 @@ router.post("/personal-tasks", (req, res) => {
       createdAt: new Date().toISOString(),
     };
     state.personalTasks.push(task);
+    notify(assigneeId, `Тебе назначена задача: ${title}`, "personal_task");
     createdIds.push(task.id);
   }
   save();
@@ -100,11 +102,15 @@ router.post("/personal-tasks/:id/entries/:entryId/approve", (req, res) => {
 
   if (task.perEntryXp || task.perEntryCoins) {
     creditAccount(task.assigneeId, task.perEntryXp || 0, task.perEntryCoins || 0);
+    logXpLedger(task.assigneeId, "personal_task", task.perEntryXp || 0, task.perEntryCoins || 0, `${task.title}: ${entry.label}`);
   }
+  notify(task.assigneeId, `Подтверждено: ${entry.label} (${task.title})`, "personal_task");
 
   const serialized = serializeTask(task);
   if (!task.rewardGranted && serialized.progress >= serialized.target) {
     creditAccount(task.assigneeId, task.xpReward || 0, task.coinReward || 0);
+    logXpLedger(task.assigneeId, "personal_task", task.xpReward || 0, task.coinReward || 0, `${task.title}: задача выполнена`);
+    notify(task.assigneeId, `Задача выполнена: ${task.title}! +${task.xpReward} XP, +${task.coinReward} points`, "personal_task");
     task.rewardGranted = true;
     task.status = "completed";
   }
@@ -114,10 +120,12 @@ router.post("/personal-tasks/:id/entries/:entryId/approve", (req, res) => {
 });
 
 router.post("/personal-tasks/:id/entries/:entryId/reject", (req, res) => {
+  const task = state.personalTasks.find((t) => t.id === req.params.id);
   const entry = state.personalTaskEntries.find((e) => e.id === req.params.entryId && e.taskId === req.params.id);
   if (!entry) return res.status(404).json({ error: "not_found" });
   entry.status = "rejected";
   entry.approvedAt = new Date().toISOString();
+  if (task) notify(task.assigneeId, `Отклонено: ${entry.label} (${task.title})`, "personal_task");
   save();
   res.status(204).end();
 });

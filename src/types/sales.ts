@@ -52,6 +52,11 @@ export interface Manager {
   id: string;
   name: string;
   avatar: string;
+  avatarUrl?: string | null;
+  department?: string;
+  createdAt?: string | null;
+  monthlyTarget?: number;
+  notifyPrefs?: { inApp: boolean; email: boolean; telegram: boolean };
   level: number;
   xp: number;
   coins: number;
