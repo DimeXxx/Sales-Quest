@@ -57,6 +57,7 @@ interface AdminPanelProps {
   onDeleteBossFight: (id: string) => void;
   onRecomputePriorities: () => void;
   onRecomputeAchievements: () => void;
+  onRecomputeCategories: () => void;
   /** Show only the products/inventory section (used by the split Admin nav). */
   hideBossFights?: boolean;
   /** Show only the Boss Fights section (used by the split Admin nav). */
@@ -77,6 +78,7 @@ export function AdminPanel({
   onDeleteBossFight,
   onRecomputePriorities,
   onRecomputeAchievements,
+  onRecomputeCategories,
   hideBossFights = false,
   onlyBossFights = false,
 }: AdminPanelProps) {
@@ -106,6 +108,9 @@ export function AdminPanel({
                 </button>
                 <button onClick={onRecomputeAchievements} className="whitespace-nowrap rounded-lg border border-[#223044] bg-white/[0.02] px-2.5 py-1.5 text-xs font-semibold text-[#8B98A9] hover:text-[#F5F7FA]">
                   Пересчитать ачивки
+                </button>
+                <button onClick={onRecomputeCategories} className="whitespace-nowrap rounded-lg border border-[#223044] bg-white/[0.02] px-2.5 py-1.5 text-xs font-semibold text-[#8B98A9] hover:text-[#F5F7FA]">
+                  Пересчитать категории
                 </button>
                 <div className="flex max-w-[220px] items-center gap-2 rounded-lg border border-[#223044] bg-white/[0.02] px-2.5 py-1.5 text-[#8B98A9]">
                   <Search className="h-3.5 w-3.5" />

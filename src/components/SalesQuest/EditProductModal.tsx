@@ -6,6 +6,7 @@ import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
 import { PhotoPicker } from "../ui/PhotoPicker";
 import { ConfirmButton } from "../ui/ConfirmButton";
+import { PRODUCT_CATEGORIES } from "../../lib/productCategories";
 import { useLanguage } from "../../i18n/LanguageContext";
 
 export interface ProductPatch {
@@ -97,7 +98,11 @@ export function EditProductModal({ row, onClose, onSave, onRemove }: EditProduct
         <div className="grid grid-cols-3 gap-3">
           <div>
             <label className={label}>{t("category")}</label>
-            <input className={field} value={current.category} onChange={(e) => set("category", e.target.value)} />
+            <select className={field} value={current.category} onChange={(e) => set("category", e.target.value)}>
+              {PRODUCT_CATEGORIES.map((c) => (
+                <option key={c.id} value={c.id}>{c.label}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label className={label}>{t("price")}</label>

@@ -153,6 +153,7 @@ export function AdminApp({ managerName, logout }: AdminAppProps) {
               onDeleteBossFight={admin.deleteBossFight}
               onRecomputePriorities={admin.recomputePriorities}
               onRecomputeAchievements={admin.recomputeAchievements}
+            onRecomputeCategories={admin.recomputeCategories}
               hideBossFights
             />
           )}
@@ -172,6 +173,7 @@ export function AdminApp({ managerName, logout }: AdminAppProps) {
               onDeleteBossFight={admin.deleteBossFight}
               onRecomputePriorities={admin.recomputePriorities}
               onRecomputeAchievements={admin.recomputeAchievements}
+            onRecomputeCategories={admin.recomputeCategories}
               onlyBossFights
             />
           )}

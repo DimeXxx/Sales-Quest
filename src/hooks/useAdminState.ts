@@ -337,6 +337,12 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
     pushToast("Ачивки пересчитаны", `Новых разблокировок: ${res.totalUnlocked}`);
   }, [pushToast]);
 
+  const recomputeCategories = useCallback(async () => {
+    const res = await api.post<{ changed: number }>("/admin/recompute-categories");
+    pushToast("Категории пересчитаны", `Изменено товаров: ${res.changed}`);
+    await loadAll();
+  }, [loadAll, pushToast]);
+
   const createPersonalTask = useCallback(
     async (input: {
       type: "debt_collection" | "individual_kpi";
@@ -407,6 +413,7 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
     updateCashBonus,
     recomputePriorities,
     recomputeAchievements,
+    recomputeCategories,
     createPersonalTask,
     deletePersonalTask,
     approvePersonalTaskEntry,

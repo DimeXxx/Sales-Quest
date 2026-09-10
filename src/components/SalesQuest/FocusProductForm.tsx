@@ -5,6 +5,7 @@ import { calculateReward } from "../../types/sales";
 import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
 import { PhotoPicker } from "../ui/PhotoPicker";
+import { PRODUCT_CATEGORIES } from "../../lib/productCategories";
 import { useLanguage } from "../../i18n/LanguageContext";
 
 interface FocusProductFormProps {
@@ -80,7 +81,12 @@ export function FocusProductForm({ onCreate }: FocusProductFormProps) {
       <div className="grid gap-3 sm:grid-cols-2">
         <input className={field} placeholder={t("productName")} value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
         <input className={field} placeholder={t("sku")} value={form.sku} onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))} />
-        <input className={field} placeholder={t("category")} value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))} />
+        <select className={field} value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}>
+          <option value="">{t("category")}...</option>
+          {PRODUCT_CATEGORIES.map((c) => (
+            <option key={c.id} value={c.id}>{c.label}</option>
+          ))}
+        </select>
         <input className={field} type="number" placeholder={t("price")} value={form.price} onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))} />
         <input className={`${field} sm:col-span-2`} placeholder={t("description")} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
         <input className={field} type="number" placeholder={t("stock")} value={form.stock} onChange={(e) => setForm((f) => ({ ...f, stock: e.target.value }))} />

@@ -441,6 +441,22 @@ router.post("/reset/achievements", (_req, res) => {
   res.status(204).end();
 });
 
+router.post("/recompute-categories", (_req, res) => {
+  // Backfills existing products (from before category was a controlled
+  // dropdown) onto the same fixed buckets the photo search relies on.
+  const { normalizeCategory } = require("../categories");
+  let changed = 0;
+  for (const p of state.products) {
+    const next = normalizeCategory(p.category);
+    if (next !== p.category) {
+      p.category = next;
+      changed++;
+    }
+  }
+  save();
+  res.json({ changed });
+});
+
 router.post("/recompute-priorities", (_req, res) => {
   // Fixes the fallout of the old buggy import logic (missing margin data
   // used to force everything to "critical"). Stock-volume only, matching

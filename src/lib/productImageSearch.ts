@@ -1,16 +1,10 @@
 // ---------------------------------------------------------------------------
-// Pulls a real photo from the internet for a product, based on its name /
-// category — no API key needed. Wikimedia Commons' API supports anonymous,
-// CORS-enabled requests (origin=*), so this works directly from the browser.
-//
-// Full-text search on Commons is loose: a vague query like "Storage product
-// photo" ranks on the word "photo" and returns unrelated art/travel shots.
-// To keep results actually relevant we (1) use curated, specific phrase
-// queries for the known product categories instead of generic filler words,
-// (2) reject results that are vector/icon files or too small to be real
-// product photography, and (3) fall back to a second, narrower query before
-// giving up — callers should treat `null` as "show the placeholder".
+// Pulls a real photo from the internet for a product, based on its
+// category (from the shared PRODUCT_CATEGORIES registry) — no API key
+// needed. Wikimedia Commons' API supports anonymous, CORS-enabled requests
+// (origin=*), so this works directly from the browser.
 // ---------------------------------------------------------------------------
+import { findCategory } from "./productCategories";
 
 interface CommonsImageInfo {
   url?: string;
@@ -29,52 +23,38 @@ interface CommonsResponse {
   };
 }
 
-// Specific, unambiguous phrase queries for the categories this app ships
-// with — far more reliable than searching the raw category label.
-const CATEGORY_QUERY: Record<string, string> = {
-  storage: "hard disk drive",
-  "ip camera": "IP security camera",
-  nvr: "network video recorder",
-  "access control": "access control keypad",
-  "ptz camera": "PTZ security camera",
-};
-
-// Software (and similar categories with no sensible product photo) is
-// intentionally excluded from CATEGORY_QUERY — it always falls through to
-// the placeholder icon.
-
-// Keyword detection scanned against BOTH the category and the product name.
-// Order matters: more specific patterns (PTZ, NVR, access control) are
-// checked before the generic "camera" pattern so a PTZ camera doesn't get
-// matched as a plain IP camera. Every match still only ever produces one of
-// the fixed, vetted queries above — we never search the user's raw text
-// directly, which is what caused unrelated/unprofessional photos before.
-const KEYWORD_PATTERNS: { pattern: RegExp; query: string }[] = [
-  { pattern: /ptz/i, query: CATEGORY_QUERY["ptz camera"] },
-  { pattern: /nvr|видеорегистратор|регистратор/i, query: CATEGORY_QUERY.nvr },
-  { pattern: /access\s*control|контрол[ьяию].*доступ|keypad|access\s*terminal/i, query: CATEGORY_QUERY["access control"] },
-  { pattern: /hdd|hard\s*disk|storage|жёстк|жестк|диск/i, query: CATEGORY_QUERY.storage },
+// Fallback keyword scan — only used when the product's category isn't one
+// of our known buckets (e.g. it's still "General" from before categories
+// became a dropdown). Every match still only ever produces one of the
+// fixed, vetted queries from the registry, never raw user text.
+const KEYWORD_PATTERNS: { pattern: RegExp; categoryId: string }[] = [
+  { pattern: /ptz/i, categoryId: "PTZ Camera" },
+  { pattern: /thermal|тепловизор/i, categoryId: "Thermal Camera" },
+  { pattern: /nvr|видеорегистратор|регистратор/i, categoryId: "NVR" },
+  { pattern: /\bdvr\b/i, categoryId: "DVR" },
+  { pattern: /домофон|intercom/i, categoryId: "Video Intercom" },
+  { pattern: /access\s*control|контрол[ьяию].*доступ|keypad|access\s*terminal/i, categoryId: "Access Control" },
+  { pattern: /hdd|hard\s*disk|storage|жёстк|жестк|диск/i, categoryId: "Storage" },
   {
     // Camera detection is broad on purpose: wholesale/Excel-imported catalogs
     // rarely spell out "camera" — model codes (DS-2CV/DS-2CD/IPC-), a
     // resolution spec (1080P/2MP/4MP), or "bullet"/"dome"/"indoor Wi-Fi" are
-    // just as reliable a signal here, and every match still only ever
-    // produces the one fixed, vetted query below.
+    // just as reliable a signal here.
     pattern: /camera|видеокамер|камера|ipc[-\s]|ds-2c[dv]|bullet|dome\b|colorvu|\d\s*mp\b|1080p|2k\b|4k\b/i,
-    query: CATEGORY_QUERY["ip camera"],
+    categoryId: "IP Camera",
   },
 ];
 
 function resolveQuery(name: string, category?: string): string | null {
-  const normalizedCategory = category?.trim().toLowerCase() ?? "";
-  if (normalizedCategory && normalizedCategory in CATEGORY_QUERY) {
-    return CATEGORY_QUERY[normalizedCategory];
-  }
-  if (normalizedCategory === "software") return null; // never search for this one
+  const known = findCategory(category);
+  // "General" isn't a deliberate "never search" bucket like Software/Mount —
+  // it just means "no specific category was picked", so it should still
+  // fall through to the name-keyword scan below rather than short-circuit.
+  if (known && known.id !== "General") return known.searchQuery;
 
   const haystack = `${category ?? ""} ${name ?? ""}`;
-  for (const { pattern, query } of KEYWORD_PATTERNS) {
-    if (pattern.test(haystack)) return query;
+  for (const { pattern, categoryId } of KEYWORD_PATTERNS) {
+    if (pattern.test(haystack)) return findCategory(categoryId)?.searchQuery ?? null;
   }
   return null;
 }

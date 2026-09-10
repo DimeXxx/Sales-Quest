@@ -1,4 +1,5 @@
 import type { Priority } from "../types/sales";
+import { normalizeCategory } from "./productCategories";
 
 export interface ParsedProductRow {
   name: string;
@@ -92,7 +93,7 @@ export async function parseProductsWorkbook(file: File): Promise<{ rows: ParsedP
     const name = colMap.name ? String(r[colMap.name] ?? "").trim() : "";
     const sku = colMap.sku ? String(r[colMap.sku] ?? "").trim() : "";
     const description = colMap.description ? String(r[colMap.description] ?? "").trim() : "";
-    const category = colMap.category ? String(r[colMap.category] ?? "").trim() : "General";
+    const category = normalizeCategory(colMap.category ? String(r[colMap.category] ?? "").trim() : "");
     const price = colMap.price ? parseNumber(r[colMap.price]) : 0;
     const stock = colMap.stock ? parseNumber(r[colMap.stock]) : 0;
     const stockAgeDays = colMap.stockAgeDays ? parseNumber(r[colMap.stockAgeDays]) : 0;
