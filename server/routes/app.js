@@ -4,6 +4,7 @@ const { state, save } = require("../db");
 const { requireAuth } = require("../auth");
 const { toPublicAccount } = require("./auth");
 const { computeSaleReward } = require("../rewardEngine");
+const { checkAndUnlockAchievements } = require("../achievements");
 
 const router = express.Router();
 router.use(requireAuth);
@@ -78,6 +79,9 @@ router.post("/sales", (req, res) => {
 
   save();
 
+  const newAchievements = checkAndUnlockAchievements(state, account);
+  if (newAchievements.length > 0) save();
+
   res.json({
     xpEarned,
     coinsEarned,
@@ -86,6 +90,7 @@ router.post("/sales", (req, res) => {
     newLevel: account.level,
     multipliers: { volume: volMult, age: ageMult, streak: streakMult },
     account: toPublicAccount(account),
+    newAchievements,
   });
 });
 

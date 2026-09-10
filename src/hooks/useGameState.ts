@@ -45,10 +45,13 @@ export function useGameState({ pushToast }: UseGameStateArgs) {
   const registerSale = useCallback(
     async (focusProductId: string, quantity = 1, details?: { customer?: string; dealValue?: number }) => {
       try {
-        const result = await api.post<{ xpEarned: number; coinsEarned: number; leveledUp: boolean; newLevel: number }>(
-          "/sales",
-          { focusProductId, quantity, ...details }
-        );
+        const result = await api.post<{
+          xpEarned: number;
+          coinsEarned: number;
+          leveledUp: boolean;
+          newLevel: number;
+          newAchievements?: string[];
+        }>("/sales", { focusProductId, quantity, ...details });
         setPulseFocusId(focusProductId);
         window.setTimeout(() => setPulseFocusId(null), 500);
 
@@ -59,6 +62,14 @@ export function useGameState({ pushToast }: UseGameStateArgs) {
           pushToast(`🚀 Level up! Level ${result.newLevel}`, "", "levelup");
         }
         pushToast("Sale logged", `+${result.xpEarned} XP · +${result.coinsEarned} points`);
+
+        if (result.newAchievements?.length) {
+          const { achievements: fresh } = await api.get<{ achievements: Achievement[] }>("/achievements");
+          for (const id of result.newAchievements) {
+            const a = fresh.find((x) => x.id === id);
+            if (a) pushToast(`🏆 Achievement unlocked: ${a.name}`, a.description, "levelup");
+          }
+        }
         return true;
       } catch (e) {
         const code = e instanceof ApiError ? e.code : "unknown_error";

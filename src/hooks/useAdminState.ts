@@ -306,6 +306,11 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
     await loadAll();
   }, [loadAll, pushToast]);
 
+  const recomputeAchievements = useCallback(async () => {
+    const res = await api.post<{ totalUnlocked: number }>("/admin/recompute-achievements");
+    pushToast("Ачивки пересчитаны", `Новых разблокировок: ${res.totalUnlocked}`);
+  }, [pushToast]);
+
   return {
     accounts,
     pendingAccounts,
@@ -323,6 +328,7 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
     addFocusProduct,
     updateCashBonus,
     recomputePriorities,
+    recomputeAchievements,
     updateFocusProduct,
     bulkImportProducts,
     removeFocusProduct,

@@ -414,6 +414,19 @@ router.post("/recompute-priorities", (_req, res) => {
   res.json({ changed });
 });
 
+router.post("/recompute-achievements", (_req, res) => {
+  // Backfills achievements against sales that happened before this logic
+  // existed — without this, only sales made AFTER the fix would ever
+  // trigger an unlock check.
+  const { checkAndUnlockAchievements } = require("../achievements");
+  let totalUnlocked = 0;
+  for (const account of state.accounts.filter((a) => a.role === "manager")) {
+    totalUnlocked += checkAndUnlockAchievements(state, account).length;
+  }
+  save();
+  res.json({ totalUnlocked });
+});
+
 router.post("/reset/all", (_req, res) => {
   state.accounts.filter((a) => a.role !== "rop" && a.role !== "admin").forEach(resetManagerFields);
   state.products.forEach((p) => { p.stock = p.initialStock; });

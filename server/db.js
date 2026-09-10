@@ -84,7 +84,7 @@ function seedData() {
     { id: "a6", name: "Warehouse Destroyer", description: "Остаток критического товара снижен на 50%", icon: "warehouse" },
     { id: "a7", name: "Streak Master", description: "7 дней подряд с продажами", icon: "flame" },
     { id: "a8", name: "Top 3 Finisher", description: "Топ-3 в рейтинге месяца", icon: "medal" },
-    { id: "a9", name: "Coin Collector", description: "Накоплено 5000 Coins", icon: "coins" },
+    { id: "a9", name: "Coin Collector", description: "Накоплено 250 Coins", icon: "coins" },
     { id: "a10", name: "Level 5", description: "Достигнут 5-й уровень", icon: "rocket" },
   ];
 
