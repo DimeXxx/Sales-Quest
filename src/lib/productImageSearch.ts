@@ -116,14 +116,33 @@ async function searchCommonsOnce(query: string): Promise<string | null> {
 }
 
 /**
- * Resolves a real internet photo for a product. The search query is always
- * one of a small, fixed, vetted list (see CATEGORY_QUERY above) — we scan
- * the category and product name for known keywords to pick one, but never
- * search the user's raw text directly. That's what caused unrelated,
- * unprofessional photos before (a random portrait for a camera, etc.). If
- * nothing matches, the caller should show the icon placeholder instead.
+ * Resolves a real internet photo for a product. Tries a SPECIFIC search for
+ * this exact model first (brand + SKU/name) — this is what actually gives
+ * different products different photos instead of every item in a category
+ * sharing one stock shot. Realistically, Wikimedia Commons — a free-culture
+ * image bank, not a product catalog — very rarely has a photo of an exact
+ * obscure wholesale SKU, so this will often come up empty and fall back to
+ * the category's fixed, vetted query (see resolveQuery above). That
+ * category fallback is still capped to the same small set of safe phrases
+ * as before — we don't search raw text for it — but the specific-model
+ * attempt does use the real name/SKU, filtered the same way (real bitmap,
+ * minimum size) to keep results from being obviously wrong.
  */
 export function findProductPhoto(name: string, category?: string, sku?: string): Promise<string | null> {
+  const specificKey = `specific:${(sku || name).toLowerCase()}`;
+  if (!cache.has(specificKey)) {
+    const specificQuery = `Hikvision ${sku || name}`.trim();
+    cache.set(
+      specificKey,
+      searchCommonsOnce(specificQuery)
+        .catch(() => null)
+        .then((url) => url ?? findProductPhotoByCategory(name, category, sku))
+    );
+  }
+  return cache.get(specificKey)!;
+}
+
+function findProductPhotoByCategory(name: string, category?: string, sku?: string): Promise<string | null> {
   const query = resolveQuery(name, category, sku);
   if (!query) return Promise.resolve(null);
 

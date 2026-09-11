@@ -52,7 +52,8 @@ const SKU_PREFIXES = [
   { pattern: /^i?DS-K1|^i?DS-K2|^i?DS-K3/i, categoryId: "Access Control" },
   { pattern: /^i?DS-PDT|^i?DS-PD|^i?DS-PM|^i?DS-PWA|^i?DS-PHI/i, categoryId: "Alarm" },
   { pattern: /^i?DS-KIS|^i?DS-KV|^i?DS-KH|^i?DS-KD/i, categoryId: "Video Intercom" },
-  { pattern: /^i?DS-3E|^i?DS-3T/i, categoryId: "Network Switch" },
+  { pattern: /^i?DS-3/i, categoryId: "Network Switch" }, // 3E/3T switches, 3WF wireless bridges — all networking gear
+  { pattern: /^i?DS-D5/i, categoryId: "Monitor" }, // display/monitor line
 ];
 
 function categoryFromSku(sku) {
