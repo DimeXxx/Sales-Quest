@@ -61,7 +61,7 @@ export function MissionDetailModal({ quest, onClose, onSell }: MissionDetailModa
   return (
     <Modal open={Boolean(quest)} onClose={() => { reset(); onClose(); }} title={product.name} maxWidth="max-w-lg">
       <div className="mb-4 flex items-start gap-3">
-        <ProductImage name={product.name} category={product.category} src={product.imageUrl} className="h-14 w-14 shrink-0 rounded-lg object-cover" />
+        <ProductImage name={product.name} category={product.category} sku={product.sku} src={product.imageUrl} className="h-14 w-14 shrink-0 rounded-lg object-cover" />
         <div>
           <PriorityBadge priority={priority} />
           <p className="mt-1 text-xs text-[#8B98A9]">{product.category} · {product.sku}</p>

@@ -444,10 +444,16 @@ router.post("/reset/achievements", (_req, res) => {
 router.post("/recompute-categories", (_req, res) => {
   // Backfills existing products (from before category was a controlled
   // dropdown) onto the same fixed buckets the photo search relies on.
-  const { normalizeCategory } = require("../categories");
+  // SKU prefix is checked first when the text-based guess is "General" —
+  // for a Hikvision-style catalog it's a much more reliable signal than
+  // the free-text category or marketing name.
+  const { normalizeCategory, categoryFromSku } = require("../categories");
   let changed = 0;
   for (const p of state.products) {
-    const next = normalizeCategory(p.category);
+    let next = normalizeCategory(p.category);
+    if (next === "General") {
+      next = categoryFromSku(p.sku) || "General";
+    }
     if (next !== p.category) {
       p.category = next;
       changed++;

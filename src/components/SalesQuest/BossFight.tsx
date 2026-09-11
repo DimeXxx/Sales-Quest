@@ -74,7 +74,7 @@ export function BossFightCard({ bossFight, product, onJoin }: BossFightProps) {
         </div>
 
         {product && (
-          <ProductImage name={product.name} category={product.category} src={product.imageUrl} className="hidden h-28 w-28 shrink-0 rounded-lg object-cover sm:block" />
+          <ProductImage name={product.name} category={product.category} sku={product.sku} src={product.imageUrl} className="hidden h-28 w-28 shrink-0 rounded-lg object-cover sm:block" />
         )}
 
         <div className="flex shrink-0 flex-col gap-2 sm:w-36">

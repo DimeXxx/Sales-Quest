@@ -34,6 +34,7 @@ export function QuestCard({ quest, pulsing, onSell }: QuestCardProps) {
         <ProductImage
           name={product.name}
           category={product.category}
+          sku={product.sku}
           src={product.imageUrl}
           className="h-11 w-11 shrink-0 rounded-lg object-cover"
         />

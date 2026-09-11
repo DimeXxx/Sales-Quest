@@ -66,7 +66,7 @@ export function Products({ quests, onSelect }: ProductsProps) {
                 <tr key={q.focusProductId} className="border-b border-[#223044] last:border-0 hover:bg-white/[0.02]">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
-                      <ProductImage name={q.product.name} category={q.product.category} src={q.product.imageUrl} className="h-8 w-8 shrink-0 rounded-lg object-cover" />
+                      <ProductImage name={q.product.name} category={q.product.category} sku={q.product.sku} src={q.product.imageUrl} className="h-8 w-8 shrink-0 rounded-lg object-cover" />
                       <span className="font-semibold text-[#F5F7FA]">{q.product.name}</span>
                     </div>
                   </td>

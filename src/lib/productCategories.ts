@@ -53,7 +53,7 @@ const SYNONYMS: { pattern: RegExp; categoryId: string }[] = [
   { pattern: /hdd|жёстк|жестк|storage|диск/i, categoryId: "Storage" },
   { pattern: /домофон|интерком|intercom/i, categoryId: "Video Intercom" },
   { pattern: /access|доступ|контрол/i, categoryId: "Access Control" },
-  { pattern: /alarm|сигнализ|охран/i, categoryId: "Alarm" },
+  { pattern: /alarm|сигнализ|охран|датчик|sensor|detector/i, categoryId: "Alarm" },
   { pattern: /switch|коммутатор/i, categoryId: "Network Switch" },
   { pattern: /power|блок питания|бп\b/i, categoryId: "Power Supply" },
   { pattern: /cable|кабел/i, categoryId: "Cable" },
@@ -70,4 +70,33 @@ export function normalizeCategory(raw: string): string {
     if (pattern.test(raw)) return categoryId;
   }
   return "General";
+}
+
+// Hikvision's own model-line prefixes encode the product type reliably —
+// far more reliable than guessing from a marketing name or description,
+// since a whole catalog of "DS-..." SKUs otherwise gives us nothing to go
+// on. Order matters: longer/more specific prefixes are checked first (e.g.
+// DS-2CV before the more general DS-2C., DS-PDT before DS-PD).
+const SKU_PREFIXES: { pattern: RegExp; categoryId: string }[] = [
+  { pattern: /^i?DS-2CV/i, categoryId: "IP Camera" }, // Wi-Fi / consumer line
+  { pattern: /^i?DS-2CD/i, categoryId: "IP Camera" }, // network camera
+  { pattern: /^i?DS-2CE/i, categoryId: "IP Camera" }, // Turbo HD / analog camera
+  { pattern: /^i?DS-2XM/i, categoryId: "IP Camera" }, // mini/mobile camera
+  { pattern: /^i?DS-2DE/i, categoryId: "PTZ Camera" },
+  { pattern: /^i?DS-2TD/i, categoryId: "Thermal Camera" },
+  { pattern: /^i?DS-7\d{3}.*NI/i, categoryId: "NVR" }, // e.g. DS-7608NI-K2
+  { pattern: /^i?DS-7\d{3}.*(HI|HGHI|HQHI|HUHI)/i, categoryId: "DVR" },
+  { pattern: /^i?DS-K1|^i?DS-K2|^i?DS-K3/i, categoryId: "Access Control" }, // terminals & controllers
+  { pattern: /^i?DS-PDT|^i?DS-PD|^i?DS-PM|^i?DS-PWA|^i?DS-PHI/i, categoryId: "Alarm" }, // PIR/microwave detectors, alarm accessories
+  { pattern: /^i?DS-KIS|^i?DS-KV|^i?DS-KH|^i?DS-KD/i, categoryId: "Video Intercom" }, // door stations, indoor monitors
+  { pattern: /^i?DS-3E|^i?DS-3T/i, categoryId: "Network Switch" },
+];
+
+/** Best-effort category from a Hikvision-style SKU prefix, or null if it doesn't match a known line. */
+export function categoryFromSku(sku: string): string | null {
+  if (!sku) return null;
+  for (const { pattern, categoryId } of SKU_PREFIXES) {
+    if (pattern.test(sku)) return categoryId;
+  }
+  return null;
 }

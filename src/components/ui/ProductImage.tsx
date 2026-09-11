@@ -9,6 +9,8 @@ interface ProductImageProps {
   name: string;
   /** Product category — usually gives better search results than the exact SKU-heavy name. */
   category?: string;
+  /** Product SKU — for Hikvision-style catalogs, the model prefix (DS-2CD, DS-PDT, ...) is often a more reliable signal than the category or name. */
+  sku?: string;
   className?: string;
   accentFrom?: string; // tailwind gradient-from class, e.g. "from-sky-500/40"
   accentTo?: string; // tailwind gradient-to class
@@ -18,11 +20,11 @@ interface ProductImageProps {
  * Renders a product photo. If an explicit `src` is provided it's used as-is
  * (falling back to the placeholder if it fails to load). Otherwise it
  * automatically searches the internet (Wikimedia Commons, no API key needed)
- * for a photo matching the product's category/name. While searching, or if
- * nothing is found, a stylized neon placeholder is shown instead of a broken
- * image icon.
+ * for a photo matching the product's category/name/SKU. While searching, or
+ * if nothing is found, a stylized neon placeholder is shown instead of a
+ * broken image icon.
  */
-export function ProductImage({ src, name, category, className = "", accentFrom = "from-cyan-500/40", accentTo = "to-violet-500/40" }: ProductImageProps) {
+export function ProductImage({ src, name, category, sku, className = "", accentFrom = "from-cyan-500/40", accentTo = "to-violet-500/40" }: ProductImageProps) {
   const [resolvedUrl, setResolvedUrl] = useState<string | null>(src ?? null);
   const [failed, setFailed] = useState(false);
   const [loading, setLoading] = useState(!src);
@@ -37,7 +39,7 @@ export function ProductImage({ src, name, category, className = "", accentFrom =
     let cancelled = false;
     setLoading(true);
     setFailed(false);
-    findProductPhoto(name, category).then((url) => {
+    findProductPhoto(name, category, sku).then((url) => {
       if (cancelled) return;
       if (url) {
         setResolvedUrl(url);
@@ -50,7 +52,7 @@ export function ProductImage({ src, name, category, className = "", accentFrom =
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [src, category, name]);
+  }, [src, category, name, sku]);
 
   if (failed || (!resolvedUrl && !loading)) {
     return (

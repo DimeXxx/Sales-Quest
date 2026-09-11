@@ -99,7 +99,7 @@ export function InventoryTable({ rows, onEdit, onRemove, onUpdateCashBonus }: In
                   </td>
                   <td className="px-4 py-3">
                     <button onClick={() => onEdit(r)} className="flex max-w-[220px] items-center gap-2.5 text-left hover:opacity-80">
-                      <ProductImage name={r.name} category={r.category} src={r.imageUrl ?? undefined} className="h-9 w-9 shrink-0 rounded-lg object-cover" />
+                      <ProductImage name={r.name} category={r.category} sku={r.sku} src={r.imageUrl ?? undefined} className="h-9 w-9 shrink-0 rounded-lg object-cover" />
                       <span className="truncate font-semibold text-[#F5F7FA]" title={r.name}>{r.name}</span>
                     </button>
                   </td>

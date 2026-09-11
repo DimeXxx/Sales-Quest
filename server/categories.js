@@ -17,7 +17,7 @@ const SYNONYMS = [
   { pattern: /hdd|жёстк|жестк|storage|диск/i, categoryId: "Storage" },
   { pattern: /домофон|интерком|intercom/i, categoryId: "Video Intercom" },
   { pattern: /access|доступ|контрол/i, categoryId: "Access Control" },
-  { pattern: /alarm|сигнализ|охран/i, categoryId: "Alarm" },
+  { pattern: /alarm|сигнализ|охран|датчик|sensor|detector/i, categoryId: "Alarm" },
   { pattern: /switch|коммутатор/i, categoryId: "Network Switch" },
   { pattern: /power|блок питания|бп\b/i, categoryId: "Power Supply" },
   { pattern: /cable|кабел/i, categoryId: "Cable" },
@@ -36,4 +36,31 @@ function normalizeCategory(raw) {
   return "General";
 }
 
-module.exports = { normalizeCategory, KNOWN_IDS };
+// Hikvision model-line prefixes — mirrors src/lib/productCategories.ts's
+// SKU_PREFIXES. Used by the admin "Пересчитать категории" backfill to
+// reclassify products still stuck on "General" using their SKU, which is a
+// much stronger signal than free-text category/name for this catalog.
+const SKU_PREFIXES = [
+  { pattern: /^i?DS-2CV/i, categoryId: "IP Camera" },
+  { pattern: /^i?DS-2CD/i, categoryId: "IP Camera" },
+  { pattern: /^i?DS-2CE/i, categoryId: "IP Camera" },
+  { pattern: /^i?DS-2XM/i, categoryId: "IP Camera" },
+  { pattern: /^i?DS-2DE/i, categoryId: "PTZ Camera" },
+  { pattern: /^i?DS-2TD/i, categoryId: "Thermal Camera" },
+  { pattern: /^i?DS-7\d{3}.*NI/i, categoryId: "NVR" },
+  { pattern: /^i?DS-7\d{3}.*(HI|HGHI|HQHI|HUHI)/i, categoryId: "DVR" },
+  { pattern: /^i?DS-K1|^i?DS-K2|^i?DS-K3/i, categoryId: "Access Control" },
+  { pattern: /^i?DS-PDT|^i?DS-PD|^i?DS-PM|^i?DS-PWA|^i?DS-PHI/i, categoryId: "Alarm" },
+  { pattern: /^i?DS-KIS|^i?DS-KV|^i?DS-KH|^i?DS-KD/i, categoryId: "Video Intercom" },
+  { pattern: /^i?DS-3E|^i?DS-3T/i, categoryId: "Network Switch" },
+];
+
+function categoryFromSku(sku) {
+  if (!sku) return null;
+  for (const { pattern, categoryId } of SKU_PREFIXES) {
+    if (pattern.test(sku)) return categoryId;
+  }
+  return null;
+}
+
+module.exports = { normalizeCategory, categoryFromSku, KNOWN_IDS };

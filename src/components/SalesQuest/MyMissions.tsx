@@ -85,7 +85,7 @@ export function MyMissions({ quests, personalTasks, onSubmitPersonalTaskEntry, o
           const pct = (q.mySold / Math.max(1, q.product.initialStock)) * 100;
           return (
             <Card key={q.focusProductId} interactive className="flex items-center gap-3 p-3.5">
-              <ProductImage name={q.product.name} category={q.product.category} src={q.product.imageUrl} className="h-10 w-10 shrink-0 rounded-lg object-cover" />
+              <ProductImage name={q.product.name} category={q.product.category} sku={q.product.sku} src={q.product.imageUrl} className="h-10 w-10 shrink-0 rounded-lg object-cover" />
               <div className="min-w-0 flex-1">
                 <div className="mb-1 flex items-center gap-2">
                   <PriorityBadge priority={q.priority} />

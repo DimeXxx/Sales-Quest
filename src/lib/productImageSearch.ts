@@ -4,7 +4,7 @@
 // needed. Wikimedia Commons' API supports anonymous, CORS-enabled requests
 // (origin=*), so this works directly from the browser.
 // ---------------------------------------------------------------------------
-import { findCategory } from "./productCategories";
+import { categoryFromSku, findCategory } from "./productCategories";
 
 interface CommonsImageInfo {
   url?: string;
@@ -33,6 +33,7 @@ const KEYWORD_PATTERNS: { pattern: RegExp; categoryId: string }[] = [
   { pattern: /nvr|видеорегистратор|регистратор/i, categoryId: "NVR" },
   { pattern: /\bdvr\b/i, categoryId: "DVR" },
   { pattern: /домофон|intercom/i, categoryId: "Video Intercom" },
+  { pattern: /alarm|сигнализ|охран|датчик|sensor|detector/i, categoryId: "Alarm" },
   { pattern: /access\s*control|контрол[ьяию].*доступ|keypad|access\s*terminal/i, categoryId: "Access Control" },
   { pattern: /hdd|hard\s*disk|storage|жёстк|жестк|диск/i, categoryId: "Storage" },
   {
@@ -45,12 +46,18 @@ const KEYWORD_PATTERNS: { pattern: RegExp; categoryId: string }[] = [
   },
 ];
 
-function resolveQuery(name: string, category?: string): string | null {
+function resolveQuery(name: string, category?: string, sku?: string): string | null {
   const known = findCategory(category);
   // "General" isn't a deliberate "never search" bucket like Software/Mount —
   // it just means "no specific category was picked", so it should still
-  // fall through to the name-keyword scan below rather than short-circuit.
+  // fall through to SKU/name detection below rather than short-circuit.
   if (known && known.id !== "General") return known.searchQuery;
+
+  // A Hikvision-style SKU prefix (DS-2CD, DS-PDT, DS-7608NI, ...) is a much
+  // stronger signal than the marketing name for a catalog like this one —
+  // check it before the looser keyword scan.
+  const bySku = categoryFromSku(sku ?? "");
+  if (bySku) return findCategory(bySku)?.searchQuery ?? null;
 
   const haystack = `${category ?? ""} ${name ?? ""}`;
   for (const { pattern, categoryId } of KEYWORD_PATTERNS) {
@@ -116,8 +123,8 @@ async function searchCommonsOnce(query: string): Promise<string | null> {
  * unprofessional photos before (a random portrait for a camera, etc.). If
  * nothing matches, the caller should show the icon placeholder instead.
  */
-export function findProductPhoto(name: string, category?: string): Promise<string | null> {
-  const query = resolveQuery(name, category);
+export function findProductPhoto(name: string, category?: string, sku?: string): Promise<string | null> {
+  const query = resolveQuery(name, category, sku);
   if (!query) return Promise.resolve(null);
 
   const key = query.toLowerCase();
