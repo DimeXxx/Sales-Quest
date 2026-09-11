@@ -9,6 +9,21 @@
     background-color: #0B1119;
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
+
+  /* Native <select> dropdown lists don't reliably inherit Tailwind's dark
+     background/text classes on the <select> itself — Chrome on Windows in
+     particular renders the popup option list with its own default white
+     background, leaving light text nearly invisible until hovered. Setting
+     color-scheme tells the browser to render native form controls (select
+     popups, date pickers, etc.) in dark mode, and explicit option colors
+     cover browsers that ignore color-scheme for this. */
+  select {
+    color-scheme: dark;
+  }
+  select option {
+    background-color: #111923;
+    color: #F5F7FA;
+  }
 }
 
 @keyframes toastIn {
