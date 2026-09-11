@@ -1,6 +1,6 @@
 import { Suspense, lazy, useState } from "react";
 import { Clock, FileSpreadsheet, Gift, LayoutDashboard, LogOut, Package, RotateCcw, Shield, Target, TrendingUp, Users } from "lucide-react";
-import { BarChart3, ClipboardList } from "lucide-react";
+import { BarChart3, ClipboardList, DatabaseBackup } from "lucide-react";
 import { useLanguage } from "../../i18n/LanguageContext";
 import { useToasts } from "../../hooks/useToasts";
 import { useAdminState } from "../../hooks/useAdminState";
@@ -10,6 +10,7 @@ import { ToastStack } from "../ui/Toast";
 import { AdminPanel } from "./AdminPanel";
 import { ManagersPanel } from "./ManagersPanel";
 import { ResetPanel } from "./ResetPanel";
+import { BackupPanel } from "./BackupPanel";
 import { PendingApprovalsPanel } from "./PendingApprovalsPanel";
 import { SalesReportPanel } from "./SalesReportPanel";
 import { RewardsPanel } from "./RewardsPanel";
@@ -17,7 +18,7 @@ import { PersonalTasksPanel } from "./PersonalTasksPanel";
 
 const AdminAnalytics = lazy(() => import("./AdminAnalytics").then((m) => ({ default: m.AdminAnalytics })));
 
-type AdminSection = "overview" | "pending" | "products" | "bossfights" | "rewards" | "personalTasks" | "managers" | "reports" | "analytics" | "reset";
+type AdminSection = "overview" | "pending" | "products" | "bossfights" | "rewards" | "personalTasks" | "managers" | "reports" | "analytics" | "backup" | "reset";
 
 interface AdminAppProps {
   managerName: string;
@@ -47,6 +48,7 @@ export function AdminApp({ managerName, logout }: AdminAppProps) {
     { id: "managers", label: t("adminNavManagers"), icon: Users },
     { id: "reports", label: t("salesReport"), icon: FileSpreadsheet },
     { id: "analytics", label: t("adminNavAnalytics"), icon: BarChart3 },
+    { id: "backup", label: "Бэкапы", icon: DatabaseBackup },
     { id: "reset", label: t("adminNavReset"), icon: RotateCcw },
   ];
 
@@ -211,6 +213,8 @@ export function AdminApp({ managerName, logout }: AdminAppProps) {
               <AdminAnalytics />
             </Suspense>
           )}
+
+          {section === "backup" && <BackupPanel />}
 
           {section === "reset" && (
             <ResetPanel

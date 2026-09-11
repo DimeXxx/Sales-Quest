@@ -8,12 +8,13 @@ const adminRoutes = require("./routes/admin");
 const personalTasksRoutes = require("./routes/personalTasks").router;
 const personalTasksAdminRoutes = require("./routes/personalTasksAdmin");
 const profileRoutes = require("./routes/profile");
+const backupRoutes = require("./routes/backup");
 
 const app = express();
 const port = process.env.PORT || 3000;
 const distPath = path.join(__dirname, "..", "dist");
 
-app.use(express.json({ limit: "6mb" })); // allows base64-encoded product photo uploads
+app.use(express.json({ limit: "25mb" })); // accommodates base64 product photos and full-catalog backup/restore uploads
 app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
@@ -22,6 +23,7 @@ app.use("/api", personalTasksRoutes);
 app.use("/api", profileRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin", personalTasksAdminRoutes);
+app.use("/api/admin", backupRoutes);
 
 // Serve the built frontend (production).
 app.use(express.static(distPath));

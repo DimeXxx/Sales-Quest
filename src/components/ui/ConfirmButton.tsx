@@ -9,6 +9,7 @@ interface ConfirmButtonProps {
   variant?: "danger" | "secondary";
   size?: "sm" | "md" | "lg";
   className?: string;
+  disabled?: boolean;
 }
 
 /**
@@ -17,7 +18,7 @@ interface ConfirmButtonProps {
  * Letting the window elapse disarms it again. Used for destructive reset
  * actions so a stray click can't wipe data — no native browser confirm().
  */
-export function ConfirmButton({ onConfirm, children, variant = "danger", size = "sm", className = "" }: ConfirmButtonProps) {
+export function ConfirmButton({ onConfirm, children, variant = "danger", size = "sm", className = "", disabled = false }: ConfirmButtonProps) {
   const { t } = useLanguage();
   const [armed, setArmed] = useState(false);
 
@@ -32,6 +33,7 @@ export function ConfirmButton({ onConfirm, children, variant = "danger", size = 
       variant={variant}
       size={size}
       className={className}
+      disabled={disabled}
       onClick={() => {
         if (armed) {
           setArmed(false);

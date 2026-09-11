@@ -170,4 +170,4 @@ function save() {
   persist(state);
 }
 
-module.exports = { state, save };
+module.exports = { state, save, DB_PATH };
