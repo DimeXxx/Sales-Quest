@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Calendar, Coins, Gift, LineChart, Target, Trophy } from "lucide-react";
+import { Calendar, Coins, DollarSign, Gift, LineChart, Target, Trophy } from "lucide-react";
 import type { Achievement, BossFight, Manager, QuestCardData } from "../../types/sales";
 import { useLanguage } from "../../i18n/LanguageContext";
 import { KpiCard } from "./KpiCard";
@@ -67,9 +67,10 @@ export function QuestsTab({
               <Calendar className="h-3.5 w-3.5" /> {today}
             </p>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <KpiCard icon={Target} value={quests.length} label={t("activeMissions")} accent="#22D3EE" />
             <KpiCard icon={Coins} value={manager.coins.toLocaleString()} label={t("rewardPoints")} accent="#F5B93F" />
+            <KpiCard icon={DollarSign} value={`$${(manager.totalCashBonus ?? 0).toFixed(0)}`} label={t("cashEarnedLabel")} accent="#34D399" />
             <KpiCard icon={Trophy} value={`#${rank}`} label={t("yourRankLabel")} accent="#A78BFA" />
           </div>
         </div>
