@@ -406,25 +406,49 @@ function resetManagerFields(a) {
   a.level = 1;
   a.xp = 0;
   a.coins = 0;
+  a.totalCashBonus = 0;
   a.questsCompleted = 0;
   a.streak = 0;
+  a.lastSaleDate = null;
+}
+
+/** Clears every activity record tied to one account — otherwise Analytics/History/Ledger keep showing "reset" data forever, reading straight from these logs regardless of what the account fields say. */
+function clearAccountActivity(accountId) {
+  state.sales = state.sales.filter((s) => s.accountId !== accountId);
+  state.xpLedger = state.xpLedger.filter((e) => e.accountId !== accountId);
+  state.notifications = state.notifications.filter((n) => n.accountId !== accountId);
+  state.personalTaskEntries = state.personalTaskEntries.filter((e) => {
+    const task = state.personalTasks.find((t) => t.id === e.taskId);
+    return !task || task.assigneeId !== accountId;
+  });
+  state.redemptions = state.redemptions.filter((r) => r.accountId !== accountId);
 }
 
 router.post("/reset/manager/:id", (req, res) => {
   const account = state.accounts.find((a) => a.id === req.params.id);
-  if (account) resetManagerFields(account);
+  if (account) {
+    resetManagerFields(account);
+    clearAccountActivity(account.id);
+  }
   save();
   res.status(204).end();
 });
 
 router.post("/reset/managers", (_req, res) => {
-  state.accounts.filter((a) => a.role !== "rop" && a.role !== "admin").forEach(resetManagerFields);
+  const managers = state.accounts.filter((a) => a.role !== "rop" && a.role !== "admin");
+  managers.forEach((a) => {
+    resetManagerFields(a);
+    clearAccountActivity(a.id);
+  });
   save();
   res.status(204).end();
 });
 
 router.post("/reset/stock", (_req, res) => {
-  state.products.forEach((p) => { p.stock = p.initialStock; });
+  state.products.forEach((p) => {
+    p.stock = p.initialStock;
+    p.soldCount = 0;
+  });
   save();
   res.status(204).end();
 });
@@ -496,9 +520,24 @@ router.post("/recompute-achievements", (_req, res) => {
 
 router.post("/reset/all", (_req, res) => {
   state.accounts.filter((a) => a.role !== "rop" && a.role !== "admin").forEach(resetManagerFields);
-  state.products.forEach((p) => { p.stock = p.initialStock; });
+  state.products.forEach((p) => {
+    p.stock = p.initialStock;
+    p.soldCount = 0;
+  });
   state.bossFights.forEach((bf) => { bf.currentQuantity = 0; });
   state.accountAchievements = [];
+  // These are all activity logs derived from sales — Analytics, History,
+  // and the Ledger read straight from them, so a "full reset" that leaves
+  // them in place looks like it didn't do anything at all.
+  state.sales = [];
+  state.xpLedger = [];
+  state.notifications = [];
+  state.redemptions = [];
+  state.personalTaskEntries = [];
+  state.personalTasks.forEach((t) => {
+    t.status = "active";
+    t.rewardGranted = false;
+  });
   save();
   res.status(204).end();
 });
