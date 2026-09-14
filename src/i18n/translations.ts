@@ -3,7 +3,7 @@ export type Lang = "ru" | "ro";
 export const translations = {
   ru: {
     // App / nav
-    appName: "Sales Quest",
+    appName: "Q Sales Focus",
     appTagline: "Turn Stock Into Sales",
     navQuests: "Overview",
     navArena: "Leaderboard",
@@ -12,7 +12,7 @@ export const translations = {
     commandCenterLoop: "Close a few more missions to level up",
 
     // Auth
-    loginTitle: "Вход в Sales Quest",
+    loginTitle: "Вход в Q Sales Focus",
     loginSubtitle: "Войди под своим аккаунтом менеджера",
     registerTitle: "Регистрация",
     registerSubtitle: "Создай аккаунт менеджера",
@@ -223,7 +223,7 @@ export const translations = {
     language: "Язык",
   },
   ro: {
-    appName: "Sales Quest",
+    appName: "Q Sales Focus",
     appTagline: "Transformă stocul în vânzări",
     navQuests: "Prezentare generală",
     navArena: "Clasament",
@@ -231,7 +231,7 @@ export const translations = {
     commandCenter: "Nivelul următor",
     commandCenterLoop: "Închide câteva misiuni pentru a avansa",
 
-    loginTitle: "Autentificare Sales Quest",
+    loginTitle: "Autentificare Q Sales Focus",
     loginSubtitle: "Intră cu contul tău de manager",
     registerTitle: "Înregistrare",
     registerSubtitle: "Creează un cont de manager",

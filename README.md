@@ -1,4 +1,4 @@
-# Sales Quest — Turn Stock Into Sales
+# Q Sales Focus — Turn Stock Into Sales
 
 Gamified sales-quest MVP for QGroup Technologies. Managers sell company-focused
 / overstock SKUs, earn XP and Coins, compete on a leaderboard, and redeem
