@@ -54,6 +54,7 @@ export function Products({ quests, onSelect }: ProductsProps) {
                 <th className="px-4 py-3 font-semibold">Product</th>
                 <th className="px-4 py-3 font-semibold">SKU</th>
                 <th className="px-4 py-3 font-semibold">Category</th>
+                <th className="px-4 py-3 font-semibold">{t("price")}</th>
                 <th className="px-4 py-3 font-semibold">Stock</th>
                 <th className="px-4 py-3 font-semibold">{t("columnDaysInStock")}</th>
                 <th className="px-4 py-3 font-semibold">Priority</th>
@@ -72,6 +73,7 @@ export function Products({ quests, onSelect }: ProductsProps) {
                   </td>
                   <td className="px-4 py-3 font-mono text-[#8B98A9]">{q.product.sku}</td>
                   <td className="px-4 py-3 text-[#8B98A9]">{q.product.category}</td>
+                  <td className="px-4 py-3 font-mono text-[#F5F7FA]">{q.product.price ? `$${q.product.price}` : "—"}</td>
                   <td className="px-4 py-3 font-mono text-[#F5F7FA]">{q.product.stock}</td>
                   <td className="px-4 py-3 font-mono text-[#8B98A9]">{q.daysInStock}</td>
                   <td className="px-4 py-3"><PriorityBadge priority={q.priority} /></td>
@@ -87,7 +89,7 @@ export function Products({ quests, onSelect }: ProductsProps) {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-sm text-[#8B98A9]">{t("noQuestsForFilter")}</td>
+                  <td colSpan={9} className="px-4 py-8 text-center text-sm text-[#8B98A9]">{t("noQuestsForFilter")}</td>
                 </tr>
               )}
             </tbody>

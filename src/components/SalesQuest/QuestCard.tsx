@@ -45,10 +45,14 @@ export function QuestCard({ quest, pulsing, onSell }: QuestCardProps) {
         </div>
       </div>
 
-      <div className="mb-2.5 grid grid-cols-3 gap-2 rounded-lg bg-white/[0.02] px-2.5 py-2 text-center">
+      <div className="mb-2.5 grid grid-cols-4 gap-2 rounded-lg bg-white/[0.02] px-2.5 py-2 text-center">
         <div>
           <p className="text-[9px] uppercase tracking-wide text-[#8B98A9]">Stock</p>
           <p className="font-mono text-xs font-bold text-[#F5F7FA]">{product.stock}</p>
+        </div>
+        <div>
+          <p className="text-[9px] uppercase tracking-wide text-[#8B98A9]">{t("price")}</p>
+          <p className="font-mono text-xs font-bold text-[#F5F7FA]">{product.price ? `$${product.price}` : "—"}</p>
         </div>
         <div>
           <p className="text-[9px] uppercase tracking-wide text-[#8B98A9]">XP</p>
