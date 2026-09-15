@@ -190,6 +190,7 @@ export function AdminApp({ managerName, logout }: AdminAppProps) {
               managers={admin.approvedAccounts.filter((m) => m.role === "manager")}
               onCreate={admin.createPersonalTask}
               onDelete={admin.deletePersonalTask}
+              onUpdate={admin.updatePersonalTask}
               onApproveEntry={admin.approvePersonalTaskEntry}
               onRejectEntry={admin.rejectPersonalTaskEntry}
             />

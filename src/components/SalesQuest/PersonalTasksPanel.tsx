@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Calendar, Check, ClipboardList, Trash2, Users, X } from "lucide-react";
+import { Calendar, Check, ClipboardList, Pencil, Trash2, Users, X } from "lucide-react";
 import type { Manager, PersonalTask } from "../../types/sales";
 import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
 import { Progress } from "../ui/Progress";
 import { ConfirmButton } from "../ui/ConfirmButton";
+import { Modal } from "../ui/Modal";
+import { PersonalTaskEditForm, type PersonalTaskEditInput } from "./PersonalTaskEditForm";
 
 interface PersonalTasksPanelProps {
   tasks: PersonalTask[];
@@ -25,6 +27,7 @@ interface PersonalTasksPanelProps {
     perEntryCoins: number;
   }) => void;
   onDelete: (id: string) => void;
+  onUpdate: (id: string, patch: PersonalTaskEditInput) => void;
   onApproveEntry: (taskId: string, entryId: string) => void;
   onRejectEntry: (taskId: string, entryId: string) => void;
 }
@@ -36,7 +39,8 @@ function daysLeft(deadline: string): number {
   return Math.ceil((new Date(deadline).getTime() - Date.now()) / 86400000);
 }
 
-export function PersonalTasksPanel({ tasks, managers, onCreate, onDelete, onApproveEntry, onRejectEntry }: PersonalTasksPanelProps) {
+export function PersonalTasksPanel({ tasks, managers, onCreate, onDelete, onUpdate, onApproveEntry, onRejectEntry }: PersonalTasksPanelProps) {
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [type, setType] = useState<"debt_collection" | "individual_kpi">("debt_collection");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -105,6 +109,9 @@ export function PersonalTasksPanel({ tasks, managers, onCreate, onDelete, onAppr
                   <span className={`text-[10px] font-bold uppercase ${t.status === "completed" ? "text-emerald-400" : t.isExpired ? "text-rose-400" : "text-[#8B98A9]"}`}>
                     {t.status === "completed" ? "Готово" : t.isExpired ? "Просрочено" : `${dLeft} дн.`}
                   </span>
+                  <button onClick={() => setEditingId(t.id)} className="flex h-7 w-7 items-center justify-center rounded-md bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20">
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
                   <ConfirmButton onConfirm={() => onDelete(t.id)} variant="danger" size="sm" className="!p-1.5">
                     <Trash2 className="h-3.5 w-3.5" />
                   </ConfirmButton>
@@ -236,6 +243,18 @@ export function PersonalTasksPanel({ tasks, managers, onCreate, onDelete, onAppr
           </div>
         </Card>
       </div>
+
+      <Modal open={Boolean(editingId)} onClose={() => setEditingId(null)} title="Редактировать задачу" maxWidth="max-w-md">
+        {editingId && (
+          <PersonalTaskEditForm
+            task={tasks.find((t) => t.id === editingId)!}
+            onSubmit={(input) => {
+              onUpdate(editingId, input);
+              setEditingId(null);
+            }}
+          />
+        )}
+      </Modal>
     </div>
   );
 }

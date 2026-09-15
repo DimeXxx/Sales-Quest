@@ -375,6 +375,29 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
     [loadAll, pushToast]
   );
 
+  const updatePersonalTask = useCallback(
+    async (
+      id: string,
+      patch: Partial<{
+        title: string;
+        description: string;
+        targetSum: number;
+        targetCount: number;
+        universeCount: number;
+        deadline: string;
+        xpReward: number;
+        coinReward: number;
+        perEntryXp: number;
+        perEntryCoins: number;
+      }>
+    ) => {
+      await api.put(`/admin/personal-tasks/${id}`, patch);
+      pushToast("Задача обновлена");
+      await loadAll();
+    },
+    [loadAll, pushToast]
+  );
+
   const approvePersonalTaskEntry = useCallback(
     async (taskId: string, entryId: string) => {
       await api.post(`/admin/personal-tasks/${taskId}/entries/${entryId}/approve`);
@@ -416,6 +439,7 @@ export function useAdminState({ pushToast }: UseAdminStateArgs) {
     recomputeCategories,
     createPersonalTask,
     deletePersonalTask,
+    updatePersonalTask,
     approvePersonalTaskEntry,
     rejectPersonalTaskEntry,
     updateFocusProduct,
