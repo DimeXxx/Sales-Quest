@@ -128,6 +128,17 @@ router.get("/boss-fights", (_req, res) => {
   res.json({ bossFights: state.bossFights });
 });
 
+router.post("/boss-fights/:id/join", (req, res) => {
+  const bf = state.bossFights.find((b) => b.id === req.params.id);
+  if (!bf) return res.status(404).json({ error: "not_found" });
+  bf.participants ??= [];
+  if (!bf.participants.includes(req.auth.id)) {
+    bf.participants.push(req.auth.id);
+    save();
+  }
+  res.json({ participants: bf.participants });
+});
+
 // ---- achievements --------------------------------------------------------
 router.get("/achievements", (req, res) => {
   const unlockedIds = new Set(

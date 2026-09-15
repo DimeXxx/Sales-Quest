@@ -336,6 +336,7 @@ router.post("/boss-fights", (req, res) => {
     deadline: new Date(deadline).toISOString(),
     reward: reward || "",
     active: false,
+    participants: [],
   };
   state.bossFights.push(bf);
   notifyAllManagers(`Новый Team Challenge: ${bf.title}`, "quest");

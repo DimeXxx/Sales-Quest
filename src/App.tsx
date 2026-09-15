@@ -85,7 +85,7 @@ function ManagerApp({ accountName, logout }: { accountName: string; logout: () =
                 leaderboard={game.leaderboard}
                 achievements={game.achievements}
                 onSell={game.registerSale}
-                onJoinBossFight={() => pushToast("You're in!", "Your sales now count toward the team challenge")}
+                onJoinBossFight={game.joinBossFight}
                 onNavigate={setTab}
               />
             )}

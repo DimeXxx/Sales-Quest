@@ -80,6 +80,7 @@ export function QuestsTab({
             key={bf.id}
             bossFight={bf}
             product={quests.find((q) => q.product.sku === bf.targetSku)?.product}
+            joined={bf.participants?.includes(manager.id) ?? false}
             onJoin={() => onJoinBossFight(bf.id)}
           />
         ))}

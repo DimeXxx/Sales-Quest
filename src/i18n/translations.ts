@@ -64,6 +64,9 @@ export const translations = {
     bossFight: "TEAM CHALLENGE",
     bossFightReward: "Reward",
     bossFightJoin: "Join challenge",
+    bossFightJoined: "Ты в деле ✓",
+    participantSingular: "коллега уже присоединился",
+    participantPlural: "коллег уже присоединились",
 
     // Arena tab
     arenaTitle: "Leaderboard",
@@ -281,6 +284,9 @@ export const translations = {
     bossFight: "TEAM CHALLENGE",
     bossFightReward: "Recompensă",
     bossFightJoin: "Join challenge",
+    bossFightJoined: "Ești în echipă ✓",
+    participantSingular: "coleg s-a alăturat deja",
+    participantPlural: "colegi s-au alăturat deja",
 
     arenaTitle: "Clasament",
     arenaSubtitle: "Clasamentul managerilor și magazinul de recompense",

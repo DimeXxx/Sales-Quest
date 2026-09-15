@@ -10,6 +10,7 @@ import { useLanguage } from "../../i18n/LanguageContext";
 interface BossFightProps {
   bossFight: BossFightType;
   product?: Product;
+  joined: boolean;
   onJoin?: () => void;
 }
 
@@ -36,12 +37,13 @@ function useCountdown(deadline: string) {
  * as a corporate initiative, not a game mechanic: no health bars, no skull
  * icons, no aggressive glow. Just a clear target, progress, and a reward.
  */
-export function BossFightCard({ bossFight, product, onJoin }: BossFightProps) {
+export function BossFightCard({ bossFight, product, joined, onJoin }: BossFightProps) {
   const { t } = useLanguage();
   const { label, expired } = useCountdown(bossFight.deadline);
   const pct = (bossFight.currentQuantity / bossFight.targetQuantity) * 100;
   const remaining = Math.max(0, bossFight.targetQuantity - bossFight.currentQuantity);
   const defeated = remaining <= 0;
+  const participantCount = bossFight.participants?.length ?? 0;
 
   return (
     <Card className="relative overflow-hidden p-5">
@@ -66,10 +68,15 @@ export function BossFightCard({ bossFight, product, onJoin }: BossFightProps) {
           </div>
           <Progress value={pct} height="h-2" colorClassName={defeated ? "bg-emerald-400" : "bg-cyan-400"} />
 
-          <div className="mt-4">
-            <Button variant="secondary" size="sm" onClick={onJoin} disabled={expired || defeated}>
-              {defeated ? t("bossDefeated") : t("bossFightJoin")}
+          <div className="mt-4 flex items-center gap-3">
+            <Button variant="secondary" size="sm" onClick={onJoin} disabled={expired || defeated || joined}>
+              {defeated ? t("bossDefeated") : joined ? t("bossFightJoined") : t("bossFightJoin")}
             </Button>
+            {participantCount > 0 && (
+              <span className="text-[11px] text-[#8B98A9]">
+                {participantCount} {participantCount === 1 ? t("participantSingular") : t("participantPlural")}
+              </span>
+            )}
           </div>
         </div>
 

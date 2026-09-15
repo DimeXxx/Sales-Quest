@@ -97,6 +97,20 @@ export function useGameState({ pushToast }: UseGameStateArgs) {
     [refreshAccount, pushToast]
   );
 
+  const joinBossFight = useCallback(
+    async (bossFightId: string) => {
+      try {
+        await api.post(`/boss-fights/${bossFightId}/join`);
+        pushToast("Ты в деле!", "Твои продажи этого товара уже считаются в общий рывок");
+        await loadAll();
+      } catch (e) {
+        const code = e instanceof ApiError ? e.code : "unknown_error";
+        pushToast("Не удалось присоединиться", code, "error");
+      }
+    },
+    [loadAll, pushToast]
+  );
+
   return {
     currentManager: account as Manager,
     quests,
@@ -109,5 +123,6 @@ export function useGameState({ pushToast }: UseGameStateArgs) {
     registerSale,
     redeemReward,
     refetch: loadAll,
+    joinBossFight,
   };
 }

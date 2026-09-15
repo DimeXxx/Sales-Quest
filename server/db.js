@@ -104,6 +104,7 @@ function seedData() {
       deadline: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
       reward: "🍕 Пицца для отдела",
       active: true,
+      participants: [],
     },
     {
       id: "bf2",
@@ -114,6 +115,7 @@ function seedData() {
       currentQuantity: 0,
       deadline: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
       reward: "🏖️ Пятница выходной для отдела",
+      participants: [],
       active: false,
     },
   ];
@@ -145,6 +147,7 @@ function load() {
         a.monthlyTarget ??= 0;
         a.notifyPrefs ??= { inApp: true, email: false, telegram: false };
       }
+      for (const bf of data.bossFights) bf.participants ??= [];
       return data;
     } catch {
       console.error("[db] Corrupt data file, reseeding.");

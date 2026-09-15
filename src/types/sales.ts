@@ -86,6 +86,7 @@ export interface BossFight {
   deadline: string; // ISO datetime
   reward: string;
   active: boolean;
+  participants: string[];
 }
 
 export type PersonalTaskType = "debt_collection" | "individual_kpi";
