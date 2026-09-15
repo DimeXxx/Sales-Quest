@@ -86,6 +86,7 @@ function ManagerApp({ accountName, logout }: { accountName: string; logout: () =
                 achievements={game.achievements}
                 onSell={game.registerSale}
                 onJoinBossFight={game.joinBossFight}
+                onSelectQuest={setSelectedQuest}
                 onNavigate={setTab}
               />
             )}

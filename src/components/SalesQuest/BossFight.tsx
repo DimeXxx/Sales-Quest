@@ -12,6 +12,7 @@ interface BossFightProps {
   product?: Product;
   joined: boolean;
   onJoin?: () => void;
+  onLogSale?: () => void;
 }
 
 function useCountdown(deadline: string) {
@@ -37,7 +38,7 @@ function useCountdown(deadline: string) {
  * as a corporate initiative, not a game mechanic: no health bars, no skull
  * icons, no aggressive glow. Just a clear target, progress, and a reward.
  */
-export function BossFightCard({ bossFight, product, joined, onJoin }: BossFightProps) {
+export function BossFightCard({ bossFight, product, joined, onJoin, onLogSale }: BossFightProps) {
   const { t } = useLanguage();
   const { label, expired } = useCountdown(bossFight.deadline);
   const pct = (bossFight.currentQuantity / bossFight.targetQuantity) * 100;
@@ -68,7 +69,12 @@ export function BossFightCard({ bossFight, product, joined, onJoin }: BossFightP
           </div>
           <Progress value={pct} height="h-2" colorClassName={defeated ? "bg-emerald-400" : "bg-cyan-400"} />
 
-          <div className="mt-4 flex items-center gap-3">
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            {onLogSale && !defeated && (
+              <Button size="sm" onClick={onLogSale}>
+                {t("logSale")}
+              </Button>
+            )}
             <Button variant="secondary" size="sm" onClick={onJoin} disabled={expired || defeated || joined}>
               {defeated ? t("bossDefeated") : joined ? t("bossFightJoined") : t("bossFightJoin")}
             </Button>

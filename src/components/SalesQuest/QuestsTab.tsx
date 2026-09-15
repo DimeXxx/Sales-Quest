@@ -18,6 +18,7 @@ interface QuestsTabProps {
   achievements: Achievement[];
   onSell: (focusProductId: string, quantity: number) => void;
   onJoinBossFight: (id: string) => void;
+  onSelectQuest: (quest: QuestCardData) => void;
   onNavigate: (tab: "products" | "arena") => void;
 }
 
@@ -38,6 +39,7 @@ export function QuestsTab({
   achievements,
   onSell,
   onJoinBossFight,
+  onSelectQuest,
   onNavigate,
 }: QuestsTabProps) {
   const { t, lang } = useLanguage();
@@ -75,15 +77,19 @@ export function QuestsTab({
           </div>
         </div>
 
-        {activeBossFights.map((bf) => (
-          <BossFightCard
-            key={bf.id}
-            bossFight={bf}
-            product={quests.find((q) => q.product.sku === bf.targetSku)?.product}
-            joined={bf.participants?.includes(manager.id) ?? false}
-            onJoin={() => onJoinBossFight(bf.id)}
-          />
-        ))}
+        {activeBossFights.map((bf) => {
+          const matchedQuest = quests.find((q) => q.product.sku === bf.targetSku);
+          return (
+            <BossFightCard
+              key={bf.id}
+              bossFight={bf}
+              product={matchedQuest?.product}
+              joined={bf.participants?.includes(manager.id) ?? false}
+              onJoin={() => onJoinBossFight(bf.id)}
+              onLogSale={matchedQuest ? () => onSelectQuest(matchedQuest) : undefined}
+            />
+          );
+        })}
 
         <div>
           <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
